@@ -157,7 +157,7 @@ export function sellAllLoot(): { message: string; earned: number } {
   for (const item of RESOURCES) {
     const quantity = state.bag[item.id];
     if (quantity <= 0) continue;
-    earned += quantity * marketPrice(item.id);
+    earned += quantity * brokerOffer(item.id);
     sold += quantity;
     state.market.supply[item.id] = clamp(state.market.supply[item.id] + quantity, 0, 20);
     state.market.demand[item.id] = clamp(state.market.demand[item.id] - Math.ceil(quantity / 2), 1, 16);
