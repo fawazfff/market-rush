@@ -6,7 +6,6 @@ type Walker = { root: Phaser.GameObjects.Container; x: number; y: number; target
 export class MarketScene extends Phaser.Scene {
   private walkers: Walker[] = [];
   private spawnClock = 0;
-  private street!: Phaser.GameObjects.Graphics;
   private orderLabel!: Phaser.GameObjects.Text;
 
   constructor() { super("MarketScene"); }
