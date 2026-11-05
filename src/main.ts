@@ -182,6 +182,8 @@ function extractDungeon(knockedOut = false): void {
   notify(summary);
 }
 
+byId("touch-attack")?.addEventListener("click", () => game?.events.emit("touch-attack"));
+byId("touch-interact")?.addEventListener("click", () => game?.events.emit("touch-interact"));
 byId("start-game")?.addEventListener("click", startGame);
 byId("enter-rift")?.addEventListener("click", enterDungeon);
 byId("return-bazaar")?.addEventListener("click", () => extractDungeon(false));
