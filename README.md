@@ -18,6 +18,8 @@ The current playable slice includes:
 - A broker explanation for why each resource is priced the way it is.
 - A sell-all action, healing tonics and weapon upgrades.
 - A market clock where one real minute advances seven in-game days.
+- Save progress in the browser so coins, items, equipment and market conditions survive a refresh.
+- Touch attack and interaction buttons on smaller screens.
 - Keyboard movement and click-to-walk controls.
 
 ## Controls
