@@ -4,6 +4,9 @@ import { DungeonScene } from "./scenes/DungeonScene";
 import {
   RESOURCES,
   advanceMarketDay,
+  brokerOffer,
+  negotiateOffer,
+  sellResource,
   beginExpedition,
   buyPotion,
   finishExpedition,
@@ -15,6 +18,7 @@ import {
   usePotion,
 } from "./economy";
 import "./style.css";
+import "./market.css";
 
 const byId = (id: string) => document.getElementById(id);
 const setText = (id: string, value: string | number) => {
@@ -58,8 +62,19 @@ function renderInventory(): void {
   host.innerHTML = RESOURCES.map((item) => {
     const quantity = state.bag[item.id];
     if (quantity === 0) return "";
-    return '<div class="inventory-row"><span class="resource-symbol">' + item.icon + '</span><span class="resource-name">' + item.name + '</span><b>' + quantity + '</b><small>' + (marketPrice(item.id) * quantity) + 'c</small></div>';
+    const offer = brokerOffer(item.id);
+    return '<div class="inventory-row inventory-row-trade"><span class="resource-symbol">' + item.icon + '</span><span class="resource-name">' + item.name + '<small class="broker-quote">Mara offers ' + offer + 'c each</small></span><b>×' + quantity + '</b><button data-negotiate="' + item.id + '" title="Ask Mara for a better price">ASK</button><button data-sell="' + item.id + '">SELL 1</button></div>';
   }).join("");
+  host.querySelectorAll<HTMLButtonElement>("[data-negotiate]").forEach((button) => button.addEventListener("click", () => {
+    const result = negotiateOffer(button.dataset.negotiate as ResourceId);
+    render();
+    notify(result);
+  }));
+  host.querySelectorAll<HTMLButtonElement>("[data-sell]").forEach((button) => button.addEventListener("click", () => {
+    const result = sellResource(button.dataset.sell as ResourceId);
+    render();
+    notify(result.message);
+  }));
 }
 
 function renderMarket(): void {
@@ -94,7 +109,7 @@ function render(): void {
   setText("total-earned", state.totals.coinsEarned);
   setText("item-count", RESOURCES.reduce((total, item) => total + state.bag[item.id], 0));
   const sellButton = byId("sell-loot") as HTMLButtonElement | null;
-  if (sellButton) sellButton.disabled = state.bag.emberOre + state.bag.moonleaf + state.bag.slimeCore === 0;
+  if (sellButton) sellButton.disabled = RESOURCES.reduce((total, item) => total + state.bag[item.id], 0) === 0;
   const tonicButton = byId("use-tonic") as HTMLButtonElement | null;
   if (tonicButton) tonicButton.disabled = state.potions <= 0 || state.health >= state.maxHealth;
   const upgradeButton = byId("upgrade-blade") as HTMLButtonElement | null;
