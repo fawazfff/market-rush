@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { addLoot, damagePlayer, playerDamage, recordKill, type ResourceId } from "../economy";
+import { addLoot, damagePlayer, playerDamage, recordKill, resourceById, type ResourceId } from "../economy";
 
 type MoveKeys = Record<string, Phaser.Input.Keyboard.Key>;
 type Enemy = {
@@ -175,7 +175,7 @@ export class DungeonScene extends Phaser.Scene {
     if (!enemy.alive) return;
     enemy.alive = false;
     recordKill();
-    const id = Phaser.Utils.Array.GetRandom(["emberOre", "moonleaf", "slimeCore"] as ResourceId[]);
+    const id = Phaser.Utils.Array.GetRandom(["riftCrystal", "emberOre", "moonleaf", "slimeCore", "firewood"] as ResourceId[]);
     this.createDrop(enemy.x, enemy.y, id);
     this.tweens.add({
       targets: enemy.root,
@@ -191,8 +191,8 @@ export class DungeonScene extends Phaser.Scene {
   private createDrop(x: number, y: number, id: ResourceId): void {
     const root = this.add.container(x, y);
     const glow = this.add.circle(0, 0, 17, 0xd8bd7c, 0.13);
-    const gem = this.add.circle(0, 0, 8, id === "emberOre" ? 0xd9784d : id === "moonleaf" ? 0x9caf7c : 0x79a7a0);
-    const label = this.add.text(0, 17, id === "emberOre" ? "ORE" : id === "moonleaf" ? "LEAF" : "CORE", {
+    const gem = this.add.circle(0, 0, id === "riftCrystal" ? 10 : 8, id === "emberOre" ? 0xd9784d : id === "moonleaf" ? 0x9caf7c : id === "firewood" ? 0x9b7650 : id === "riftCrystal" ? 0xb5a0d5 : 0x79a7a0);
+    const label = this.add.text(0, 17, resourceById(id).name.toUpperCase(), {
       fontFamily: "Arial",
       fontSize: "8px",
       color: "#e7d7b5",
