@@ -28,6 +28,8 @@ export class DungeonScene extends Phaser.Scene {
   private target: Phaser.Math.Vector2 | null = null;
   private attackCooldown = 0;
   private damageCooldown = 0;
+  private dodgeCooldown = 0;
+  private invulnerable = 0;
   private exitPrompt!: Phaser.GameObjects.Text;
   private exitLight!: Phaser.GameObjects.Arc;
   private objectiveText!: Phaser.GameObjects.Text;
@@ -43,6 +45,8 @@ export class DungeonScene extends Phaser.Scene {
     this.drops = [];
     this.attackCooldown = 0;
     this.damageCooldown = 0;
+    this.dodgeCooldown = 0;
+    this.invulnerable = 0;
     this.drawDungeon();
     this.drawExit();
     this.drawPillars();
@@ -73,7 +77,7 @@ export class DungeonScene extends Phaser.Scene {
     }).setDepth(1000);
     this.objectiveText = this.add.text(34, 82, "RIFT CREATURES  0 / 4", { fontFamily: "Arial", fontSize: "10px", color: "#c6b58e", fontStyle: "bold", letterSpacing: 1 }).setDepth(1000);
     if (this.input.keyboard) {
-      this.keys = this.input.keyboard.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE") as MoveKeys;
+      this.keys = this.input.keyboard.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE,SHIFT") as MoveKeys;
     }
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       this.target = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
@@ -91,7 +95,7 @@ export class DungeonScene extends Phaser.Scene {
       this.game.events.off("touch-interact", touchInteract);
     });
     this.game.events.emit("scene-mode", "dungeon");
-    this.game.events.emit("toast", "Find the creatures, strike with SPACE, then walk over their drops. Extract at the glowing gate.");
+    this.game.events.emit("toast", "WASD to move · SPACE to strike · SHIFT to dodge. Clear the room to unlock extraction.");
     this.game.events.emit("state-change");
   }
 
@@ -99,6 +103,9 @@ export class DungeonScene extends Phaser.Scene {
     if (this.done || !this.keys || !this.player) return;
     this.attackCooldown = Math.max(0, this.attackCooldown - delta);
     this.damageCooldown = Math.max(0, this.damageCooldown - delta);
+    this.dodgeCooldown = Math.max(0, this.dodgeCooldown - delta);
+    this.invulnerable = Math.max(0, this.invulnerable - delta);
+    if (Phaser.Input.Keyboard.JustDown(this.keys["SHIFT"])) this.dodge();
     this.movePlayer(delta);
     this.updateEnemies(delta);
     this.collectDrops();
@@ -141,7 +148,31 @@ export class DungeonScene extends Phaser.Scene {
       const nextY = Phaser.Math.Clamp(this.player.y + dy / length * step, 190, 550);
       this.player.setPosition(nextX, nextY);
       this.player.setDepth(nextY);
+      this.player.setRotation(Phaser.Math.Angle.Between(0, 0, dx, dy) * 0.08);
     }
+  }
+
+  private dodge(): void {
+    if (this.dodgeCooldown > 0) return;
+    const pointer = this.target;
+    let dx = 0;
+    let dy = 0;
+    if (this.keys["A"].isDown || this.keys["LEFT"].isDown) dx -= 1;
+    if (this.keys["D"].isDown || this.keys["RIGHT"].isDown) dx += 1;
+    if (this.keys["W"].isDown || this.keys["UP"].isDown) dy -= 1;
+    if (this.keys["S"].isDown || this.keys["DOWN"].isDown) dy += 1;
+    if (dx === 0 && dy === 0 && pointer) { dx = this.player.x - pointer.x; dy = this.player.y - pointer.y; }
+    if (dx === 0 && dy === 0) dy = 1;
+    const length = Math.hypot(dx, dy) || 1;
+    this.player.x = Phaser.Math.Clamp(this.player.x + dx / length * 92, 42, 918);
+    this.player.y = Phaser.Math.Clamp(this.player.y + dy / length * 92, 190, 550);
+    this.player.setDepth(this.player.y);
+    this.dodgeCooldown = 1250;
+    this.invulnerable = 340;
+    this.player.setAlpha(0.42);
+    this.tweens.add({ targets: this.player, alpha: 1, duration: 340 });
+    const streak = this.add.ellipse(this.player.x, this.player.y + 12, 38, 15, 0xd7d5b8, 0.18).setDepth(this.player.depth - 1);
+    this.tweens.add({ targets: streak, alpha: 0, scaleX: 1.8, duration: 260, onComplete: () => streak.destroy() });
   }
 
   private updateEnemies(delta: number): void {
@@ -158,7 +189,7 @@ export class DungeonScene extends Phaser.Scene {
         enemy.root.setPosition(enemy.x, enemy.y);
         enemy.root.setDepth(enemy.y);
       }
-      if (distance <= 28 && this.damageCooldown <= 0) {
+      if (distance <= 28 && this.damageCooldown <= 0 && this.invulnerable <= 0) {
         const knockedOut = damagePlayer(9);
         this.damageCooldown = 950;
         this.game.events.emit("state-change");
@@ -186,6 +217,11 @@ export class DungeonScene extends Phaser.Scene {
       return;
     }
     target.enemy.hp = Math.max(0, target.enemy.hp - playerDamage());
+    const knockX = target.enemy.x + (target.enemy.x - this.player.x) / Math.max(1, Phaser.Math.Distance.Between(this.player.x, this.player.y, target.enemy.x, target.enemy.y)) * 13;
+    const knockY = target.enemy.y + (target.enemy.y - this.player.y) / Math.max(1, Phaser.Math.Distance.Between(this.player.x, this.player.y, target.enemy.x, target.enemy.y)) * 13;
+    target.enemy.x = Phaser.Math.Clamp(knockX, 42, 918);
+    target.enemy.y = Phaser.Math.Clamp(knockY, 190, 550);
+    target.enemy.root.setPosition(target.enemy.x, target.enemy.y);
     target.enemy.hpFill.setSize(34 * (target.enemy.hp / target.enemy.maxHp), 3);
     target.enemy.root.setAlpha(0.55);
     this.time.delayedCall(90, () => {
