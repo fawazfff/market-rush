@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { drawPixelPillar, drawStoneFloor, pixelShadow, pixelSprite } from "./pixel";
 import { addLoot, damagePlayer, playerDamage, recordKill, resourceById, type ResourceId } from "../economy";
 
 type MoveKeys = Record<string, Phaser.Input.Keyboard.Key>;
@@ -281,122 +282,105 @@ export class DungeonScene extends Phaser.Scene {
 
   private spawnEnemy(x: number, y: number, health = 30, color = 0x648477): void {
     const root = this.add.container(x, y);
-    const shadow = this.add.ellipse(0, 14, 34, 12, 0x080b09, 0.5);
-    const body = this.add.graphics();
-    body.fillStyle(color);
-    body.fillEllipse(0, -1, 31, 30);
-    body.fillStyle(0x89a58b);
-    body.fillEllipse(-3, -9, 18, 12);
-    body.fillStyle(0xe6d5b5);
-    body.fillCircle(-6, -2, 3);
-    body.fillCircle(6, -2, 3);
-    body.fillStyle(0x202621);
-    body.fillCircle(-6, -2, 1.4);
-    body.fillCircle(6, -2, 1.4);
-    const marker = this.add.ellipse(0, -23, 22, 5, 0x141a16, 0.55);
-    const hpBack = this.add.rectangle(0, -34, 38, 5, 0x151b17).setOrigin(0.5);
-    const hpFill = this.add.rectangle(-17, -34, 34, 3, 0xb3bd91).setOrigin(0, 0.5);
+    const shadow = pixelShadow(this, 15);
+    const guardian = health > 30;
+    const rows = guardian
+      ? [".....DDDDDD.....","....DMMMMMMD....","...DMMMMMMMMMD..","..DMMDDDDDDMMD..",".DMMDDSSSSDDMMD.","DMMDDSSKSSKDDMMD","DMMDDSSSSSSDDMMD","DMMMMMMMMMMMMMMD",".DMMMMMMMMMMMMD.","..DMMDDDDDDMMD..","...DD......DD...","..DDD......DDD.."]
+      : ["......GGGG......","....GGGGGGGG....","...GGGGGGGGGG...","..GGGGGGGGGGGG..",".GGGGGGGGGGGGGG.","GGGGGGGGGGGGGGGG","GGGGGGGGGGGGGGGG","GGGGGGGGGGGGGGGG",".GGGGGGGGGGGGGG.","..GGGGGGGGGGGG..","...GG......GG...","..DDD......DDD.."];
+    const body = pixelSprite(this, rows, {
+      G: color, D: 0x202820, M: 0x9a9b7b, S: 0xe6d5b5, K: 0x202621,
+    }, 2);
+    body.setPosition(0, -9);
+    const marker = this.add.rectangle(0, -31, 20, 2, 0x141a16, 0.7);
+    const hpBack = this.add.rectangle(0, -38, 38, 5, 0x151b17).setOrigin(0.5);
+    const hpFill = this.add.rectangle(-17, -38, 34, 3, 0xb3bd91).setOrigin(0, 0.5);
     root.add([shadow, body, marker, hpBack, hpFill]);
     root.setDepth(y);
     this.enemies.push({ root, x, y, hp: health, maxHp: health, hpFill, alive: true, flash: 0 });
   }
 
   private drawDungeon(): void {
-    const g = this.add.graphics();
-    g.fillStyle(0x171d1b);
-    g.fillRect(0, 0, 960, 600);
-    g.fillStyle(0x303a34);
-    g.fillRoundedRect(22, 150, 916, 426, 12);
-    for (let y = 158; y < 570; y += 38) {
-      for (let x = 30; x < 930; x += 48) {
-        g.fillStyle((x / 48 + y / 38) % 2 === 0 ? 0x39433b : 0x343e38, 0.8);
-        g.fillRect(x + 2, y + 2, 44, 34);
-        g.lineStyle(1, 0x222b26, 0.45);
-        g.strokeRect(x + 2, y + 2, 44, 34);
-      }
+    drawStoneFloor(this, 176, 576);
+    const trim = this.add.graphics();
+    trim.fillStyle(0x121915);
+    trim.fillRect(384, 144, 192, 32);
+    trim.fillStyle(0x66634d);
+    trim.fillRect(400, 144, 160, 8);
+    trim.fillRect(400, 168, 160, 8);
+    trim.fillStyle(0x8d805f);
+    trim.fillRect(416, 152, 128, 4);
+    for (const point of [{ x: 92, y: 220 }, { x: 868, y: 220 }, { x: 92, y: 530 }, { x: 868, y: 530 }]) {
+      drawPixelPillar(this, point.x, point.y);
     }
-    g.fillStyle(0x1f2924);
-    g.fillRoundedRect(16, 136, 928, 22, 6);
-    g.fillRoundedRect(16, 568, 928, 19, 6);
-    g.fillRoundedRect(16, 136, 19, 451, 6);
-    g.fillRoundedRect(925, 136, 19, 451, 6);
-    g.fillStyle(0x6b6a52, 0.5);
-    g.fillRoundedRect(418, 153, 124, 12, 6);
-    for (const point of [{ x: 90, y: 208 }, { x: 870, y: 208 }, { x: 90, y: 525 }, { x: 870, y: 525 }]) {
-      g.fillStyle(0x121916, 0.45);
-      g.fillEllipse(point.x, point.y + 15, 54, 20);
-      g.fillStyle(0x555b4b);
-      g.fillRoundedRect(point.x - 18, point.y - 15, 36, 36, 6);
-      g.fillStyle(0x72735b);
-      g.fillRoundedRect(point.x - 13, point.y - 18, 26, 7, 3);
-    }
-    for (const point of [{ x: 120, y: 170 }, { x: 840, y: 170 }, { x: 120, y: 555 }, { x: 840, y: 555 }]) {
-      g.fillStyle(0xd9a35d, 0.12);
-      g.fillCircle(point.x, point.y, 43);
-      g.fillStyle(0xe1b975, 0.8);
-      g.fillCircle(point.x, point.y, 7);
-      g.fillStyle(0x5e4430);
-      g.fillRect(point.x - 3, point.y + 7, 6, 15);
+    for (const point of [{ x: 120, y: 188 }, { x: 840, y: 188 }, { x: 120, y: 550 }, { x: 840, y: 550 }]) {
+      const torch = this.add.graphics();
+      torch.fillStyle(0x4a3425);
+      torch.fillRect(point.x - 3, point.y + 4, 6, 18);
+      torch.fillStyle(0xc98b4e);
+      torch.fillRect(point.x - 4, point.y - 4, 8, 8);
+      torch.fillStyle(0xf1cb7c);
+      torch.fillRect(point.x - 2, point.y - 7, 4, 5);
+      torch.setDepth(point.y);
     }
   }
 
   private drawExit(): void {
     const g = this.add.graphics();
-    g.fillStyle(0x111816, 0.85);
-    g.fillRoundedRect(406, 54, 148, 92, 40);
-    g.fillStyle(0x4d6253);
-    g.fillRoundedRect(420, 44, 120, 112, 52);
-    g.fillStyle(0x202a25);
-    g.fillRoundedRect(432, 57, 96, 92, 44);
-    g.lineStyle(5, 0xb9c39c, 0.85);
-    g.strokeCircle(480, 102, 42);
-    g.lineStyle(2, 0xe5ca90, 0.75);
-    g.strokeCircle(480, 102, 31);
-    g.fillStyle(0x91a68a, 0.2);
-    g.fillCircle(480, 102, 23);
-    this.exitLight = this.add.circle(480, 102, 18, 0x87917d, 0.16).setDepth(3);
+    g.fillStyle(0x111713);
+    g.fillRect(408, 48, 144, 104);
+    g.fillStyle(0x64634e);
+    g.fillRect(416, 44, 128, 12);
+    g.fillRect(416, 144, 128, 12);
+    g.fillRect(408, 52, 12, 96);
+    g.fillRect(540, 52, 12, 96);
+    g.fillStyle(0x292f29);
+    g.fillRect(428, 60, 104, 84);
+    g.fillStyle(0x657c67);
+    g.fillRect(440, 68, 80, 68);
+    g.fillStyle(0x17221d);
+    g.fillRect(448, 72, 64, 60);
+    g.fillStyle(0x9aab82, 0.6);
+    g.fillRect(464, 84, 32, 36);
+    g.fillStyle(0xd8c58c, 0.8);
+    g.fillRect(476, 76, 8, 8);
+    this.exitLight = this.add.rectangle(480, 102, 22, 38, 0x87917d, 0.22).setDepth(3) as unknown as Phaser.GameObjects.Arc;
     this.add.text(480, 167, "BAZAAR GATE", {
-      fontFamily: "Arial",
-      fontSize: "9px",
-      color: "#d8c99f",
-      fontStyle: "bold",
-      letterSpacing: 2,
+      fontFamily: "Arial", fontSize: "9px", color: "#d8c99f",
+      fontStyle: "bold", letterSpacing: 2,
     }).setOrigin(0.5);
   }
 
   private drawPillars(): void {
-    const g = this.add.graphics();
-    for (const point of [{ x: 330, y: 360 }, { x: 630, y: 360 }]) {
-      g.fillStyle(0x131916, 0.6);
-      g.fillEllipse(point.x, point.y + 18, 48, 17);
-      g.fillStyle(0x555d4e);
-      g.fillRoundedRect(point.x - 18, point.y - 17, 36, 38, 6);
-      g.fillStyle(0x77806a);
-      g.fillRoundedRect(point.x - 13, point.y - 20, 26, 7, 3);
-    }
+    drawPixelPillar(this, 330, 360);
+    drawPixelPillar(this, 630, 360);
   }
 
   private createPlayer(x: number, y: number): Phaser.GameObjects.Container {
     const root = this.add.container(x, y);
-    const shadow = this.add.ellipse(0, 18, 34, 13, 0x080b09, 0.5);
-    const cape = this.add.graphics();
-    cape.fillStyle(0x9a5839);
-    cape.fillRoundedRect(-13, -7, 26, 31, 8);
-    const body = this.add.graphics();
-    body.fillStyle(0x49665b);
-    body.fillRoundedRect(-11, -10, 22, 29, 6);
-    body.fillStyle(0xc9a16f);
-    body.fillRoundedRect(-10, 1, 20, 5, 2);
-    const head = this.add.circle(0, -19, 10, 0xd8b28d);
-    const hood = this.add.graphics();
-    hood.fillStyle(0x303c35);
-    hood.fillEllipse(0, -25, 24, 13);
-    hood.fillStyle(0x1d251f);
-    hood.fillCircle(-4, -20, 1.5);
-    hood.fillCircle(4, -20, 1.5);
-    const blade = this.add.rectangle(15, -1, 5, 22, 0xc8c5ad).setAngle(26);
-    root.add([shadow, cape, body, head, hood, blade]);
+    const shadow = pixelShadow(this, 16);
+    const hero = pixelSprite(this, [
+      "......DDDD......",
+      ".....DHHHHD.....",
+      "....DHHHHHHD....",
+      "....SSSSSSSS....",
+      "....SSSKSSKSS...",
+      ".....SSSSSS.....",
+      "....CCCCCCCC....",
+      "...CCCCGGCCCC...",
+      "...CCCBGGBCCC...",
+      "...CCCBGGBCCC...",
+      "....CCBBBBCC....",
+      "....BBBDDBBB....",
+      "....DDD..DDD....",
+      "...DDD....DDD...",
+      "...DD......DD...",
+      "..MMM......MMM..",
+      "..M..........M..",
+    ], { D: 0x263229, H: 0x302a24, S: 0xd6ad83, K: 0x20231d, C: 0x9b543b, B: 0x4d6b5b, G: 0xd4b36d, M: 0xaaa995 }, 2);
+    hero.setPosition(0, -12);
+    root.add([shadow, hero]);
     root.setDepth(y);
     return root;
   }
+}}
 }
