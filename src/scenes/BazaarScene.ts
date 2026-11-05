@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { drawStoneFloor, pixelShadow, pixelSprite } from "./pixel";
 
 type MoveKeys = Record<string, Phaser.Input.Keyboard.Key>;
 
@@ -109,28 +110,21 @@ export class BazaarScene extends Phaser.Scene {
   }
 
   private drawFloor(): void {
-    const g = this.add.graphics();
-    g.fillStyle(0x282d27);
-    g.fillRect(0, 0, 960, 600);
-    g.fillStyle(0x41463b);
-    g.fillRect(18, 106, 924, 470);
-    for (let y = 110; y < 575; y += 44) {
-      for (let x = 22; x < 945; x += 56) {
-        g.lineStyle(1, 0x343a32, 0.55);
-        g.strokeRect(x, y, 56, 44);
-        g.fillStyle((x / 56 + y / 44) % 2 === 0 ? 0x494d40 : 0x454a3e, 0.36);
-        g.fillRect(x + 2, y + 2, 52, 40);
+    drawStoneFloor(this, 106, 576);
+    const path = this.add.graphics();
+    path.fillStyle(0x625a43);
+    path.fillRect(360, 350, 240, 208);
+    path.fillStyle(0x786b4d, 0.55);
+    for (let y = 360; y < 550; y += 32) {
+      for (let x = 368; x < 592; x += 32) {
+        path.fillRect(x + 2, y + 2, 28, 28);
+        path.fillStyle(0x292f28, 0.55);
+        path.fillRect(x + 2, y + 29, 28, 2);
+        path.fillStyle(0x786b4d, 0.55);
       }
     }
-    g.fillStyle(0x20251f);
-    g.fillRect(18, 106, 924, 12);
-    g.fillRect(18, 564, 924, 12);
-    g.fillRect(18, 106, 12, 470);
-    g.fillRect(930, 106, 12, 470);
-    g.fillStyle(0x5c5746, 0.8);
-    g.fillRoundedRect(342, 116, 232, 18, 8);
-    g.fillStyle(0x8d7653, 0.35);
-    g.fillRoundedRect(360, 136, 196, 5, 3);
+    path.fillStyle(0x20271f);
+    path.fillRect(18, 106, 924, 8);
   }
 
   private drawStalls(): void {
@@ -148,52 +142,53 @@ export class BazaarScene extends Phaser.Scene {
 
   private drawStall(x: number, y: number, w: number, h: number, label: string, color: number): void {
     const g = this.add.graphics();
-    g.fillStyle(0x11150f, 0.3);
-    g.fillRoundedRect(x + 9, y + 11, w, h, 10);
-    g.fillStyle(0xb9a37a);
-    g.fillRoundedRect(x, y, w, h, 9);
-    g.fillStyle(0x383d32);
-    g.fillRoundedRect(x + 6, y + 6, w - 12, h - 12, 6);
+    g.fillStyle(0x151b16);
+    g.fillRect(x + 7, y + 9, w, h);
+    g.fillStyle(0x6c624b);
+    g.fillRect(x, y, w, h);
+    g.fillStyle(0x343c31);
+    g.fillRect(x + 5, y + 5, w - 10, h - 10);
     g.fillStyle(color);
-    g.fillRoundedRect(x + 4, y + 3, w - 8, 35, 5);
-    g.fillRect(x + 4, y + 27, w - 8, 13);
-    for (let i = 0; i < 8; i += 1) {
-      g.fillStyle(i % 2 === 0 ? color : 0xe0c79b);
-      g.fillTriangle(x + 4 + i * (w - 8) / 8, y + 39, x + 4 + (i + 1) * (w - 8) / 8, y + 39, x + 4 + (i + 0.5) * (w - 8) / 8, y + 55);
+    g.fillRect(x + 5, y + 5, w - 10, 36);
+    g.fillStyle(0x222a23);
+    g.fillRect(x + 5, y + 34, w - 10, 10);
+    for (let i = 0; i < w; i += 24) {
+      g.fillStyle(i % 48 === 0 ? color : 0xd8bd8a);
+      g.fillRect(x + 5 + i, y + 43, 12, 11);
+      g.fillStyle(0x272d25);
+      g.fillRect(x + 17 + i, y + 43, 12, 11);
     }
-    g.fillStyle(0x171b17);
-    g.fillRoundedRect(x + 18, y + 76, w - 36, 56, 5);
-    g.fillStyle(0x9e8056);
-    g.fillRoundedRect(x + 28, y + 86, w - 56, 12, 3);
-    g.fillStyle(0x6e6249);
-    g.fillRoundedRect(x + 24, y + 143, w - 48, 13, 4);
-    this.add.text(x + w / 2, y + h - 23, label, {
-      fontFamily: "Arial",
-      fontSize: "10px",
-      color: "#e9d6ad",
-      fontStyle: "bold",
-      letterSpacing: 1,
+    g.fillStyle(0x171d18);
+    g.fillRect(x + 18, y + 74, w - 36, 58);
+    g.fillStyle(0x95774e);
+    g.fillRect(x + 27, y + 84, w - 54, 8);
+    g.fillStyle(0x5b513c);
+    g.fillRect(x + 22, y + 136, w - 44, 14);
+    this.add.text(x + w / 2, y + h - 20, label, {
+      fontFamily: "Arial", fontSize: "10px", color: "#e9d6ad",
+      fontStyle: "bold", letterSpacing: 1,
     }).setOrigin(0.5);
   }
 
   private drawGate(): void {
     const g = this.add.graphics();
-    g.fillStyle(0x171d1a, 0.7);
-    g.fillRoundedRect(752, 265, 136, 112, 18);
-    g.fillStyle(0x6b614b);
-    g.fillRoundedRect(766, 247, 108, 142, 52);
-    g.fillStyle(0x272c27);
-    g.fillRoundedRect(779, 261, 82, 118, 42);
-    g.fillStyle(0x8ba18b, 0.22);
-    g.fillRoundedRect(786, 275, 68, 95, 36);
-    g.lineStyle(4, 0x9eb39a, 0.85);
-    g.strokeCircle(820, 322, 39);
-    g.lineStyle(2, 0xe0c58e, 0.65);
-    g.strokeCircle(820, 322, 29);
-    g.fillStyle(0xb8c5a1, 0.25);
-    g.fillCircle(820, 322, 20);
-    g.fillStyle(0x9c8055);
-    g.fillRoundedRect(759, 377, 122, 9, 4);
+    g.fillStyle(0x151b16);
+    g.fillRect(752, 265, 136, 112);
+    g.fillStyle(0x65614b);
+    g.fillRect(760, 249, 120, 12);
+    g.fillRect(760, 377, 120, 12);
+    g.fillRect(752, 261, 12, 124);
+    g.fillRect(876, 261, 12, 124);
+    g.fillStyle(0x343e34);
+    g.fillRect(772, 265, 96, 108);
+    g.fillStyle(0x18231d);
+    g.fillRect(784, 277, 72, 84);
+    g.fillStyle(0x81977e, 0.55);
+    g.fillRect(796, 289, 48, 60);
+    g.fillStyle(0xbed0a3, 0.45);
+    g.fillRect(812, 301, 16, 36);
+    g.fillStyle(0xe0c58e);
+    g.fillRect(816, 285, 8, 8);
   }
 
   private drawDecor(): void {
@@ -218,39 +213,35 @@ export class BazaarScene extends Phaser.Scene {
 
   private createPlayer(x: number, y: number): Phaser.GameObjects.Container {
     const root = this.add.container(x, y);
-    const shadow = this.add.ellipse(0, 18, 34, 13, 0x10140f, 0.4);
-    const cape = this.add.graphics();
-    cape.fillStyle(0x9a5839);
-    cape.fillRoundedRect(-13, -7, 26, 31, 8);
-    const body = this.add.graphics();
-    body.fillStyle(0x49665b);
-    body.fillRoundedRect(-11, -10, 22, 29, 6);
-    body.fillStyle(0xc9a16f);
-    body.fillRoundedRect(-10, 1, 20, 5, 2);
-    const head = this.add.circle(0, -19, 10, 0xd8b28d);
-    const hood = this.add.graphics();
-    hood.fillStyle(0x303c35);
-    hood.fillEllipse(0, -25, 24, 13);
-    hood.fillStyle(0x1d251f);
-    hood.fillCircle(-4, -20, 1.5);
-    hood.fillCircle(4, -20, 1.5);
-    const blade = this.add.rectangle(15, -1, 5, 22, 0xc8c5ad).setAngle(26);
-    root.add([shadow, cape, body, head, hood, blade]);
+    const shadow = pixelShadow(this, 16);
+    const hero = pixelSprite(this, [
+      "......DDDD......",".....DHHHHD.....","....DHHHHHHD....",
+      "....SSSSSSSS....","....SSSKSSKSS...",".....SSSSSS.....",
+      "....CCCCCCCC....","...CCCCGGCCCC...","...CCCBGGBCCC...",
+      "...CCCBGGBCCC...","....CCBBBBCC....","....BBBDDBBB....",
+      "....DDD..DDD....","...DDD....DDD...","...DD......DD...",
+      "..MMM......MMM..","..M..........M..",
+    ], { D: 0x263229, H: 0x302a24, S: 0xd6ad83, K: 0x20231d, C: 0x9b543b, B: 0x4d6b5b, G: 0xd4b36d, M: 0xaaa995 }, 2);
+    hero.setPosition(0, -12);
+    root.add([shadow, hero]);
     root.setDepth(y);
     return root;
   }
 
   private createNpc(x: number, y: number, color: number): Phaser.GameObjects.Container {
     const root = this.add.container(x, y);
-    const shadow = this.add.ellipse(0, 15, 27, 10, 0x10140f, 0.35);
-    const body = this.add.graphics();
-    body.fillStyle(color);
-    body.fillRoundedRect(-11, -8, 22, 28, 7);
-    body.fillStyle(0xd8b28d);
-    body.fillCircle(0, -18, 10);
-    body.fillStyle(0x3b3028);
-    body.fillEllipse(0, -25, 24, 12);
-    root.add([shadow, body]);
+    const shadow = pixelShadow(this, 14);
+    const coat = color === 0x9c7454 ? 0x8b5c40 : color === 0x5a7081 ? 0x506b80 : 0x74835d;
+    const npc = pixelSprite(this, [
+      ".....DDDD.....","....DHHHHD....","...DHHHHHHD...",
+      "...SSSSSSSS...","...SSSKSSKSS...","....SSSSSS....",
+      "...CCCCCCCC...","..CCCCGGCCCC..","..CCCGGGGCCC..",
+      "..CCCGGGGCCC..","...CCBBBBCC...","...BBB..BBB...",
+      "...DDD..DDD...","..DDD....DDD..",
+    ], { D: 0x252b25, H: 0x49392d, S: 0xd3a981, K: 0x1c211d, C: coat, B: 0x3d493b, G: 0xd1b77d }, 2);
+    npc.setPosition(0, -10);
+    root.add([shadow, npc]);
     return root;
   }
+}}
 }
