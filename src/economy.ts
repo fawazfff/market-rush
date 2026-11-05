@@ -48,6 +48,56 @@ export const state = {
 };
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+const SAVE_KEY = "market-rush-save-v1";
+
+export function saveGame(): void {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  } catch {
+    // The game remains playable when browser storage is unavailable.
+  }
+}
+
+export function loadSavedGame(): void {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw) as Partial<typeof state>;
+    if (typeof saved.coins === "number" && Number.isFinite(saved.coins)) state.coins = Math.max(0, saved.coins);
+    if (typeof saved.health === "number" && Number.isFinite(saved.health)) state.health = clamp(saved.health, 0, state.maxHealth);
+    if (typeof saved.potions === "number" && Number.isFinite(saved.potions)) state.potions = clamp(Math.floor(saved.potions), 0, 4);
+    if (typeof saved.weaponTier === "number" && Number.isFinite(saved.weaponTier)) state.weaponTier = clamp(Math.floor(saved.weaponTier), 0, 2);
+    const copyCounts = (target: ResourceCounts, source: Partial<ResourceCounts> | undefined) => {
+      if (!source) return;
+      RESOURCES.forEach((item) => {
+        const value = source[item.id];
+        if (typeof value === "number" && Number.isFinite(value)) target[item.id] = clamp(Math.floor(value), 0, 999);
+      });
+    };
+    copyCounts(state.bag, saved.bag);
+    if (saved.market && typeof saved.market === "object") {
+      if (typeof saved.market.day === "number" && Number.isFinite(saved.market.day)) state.market.day = Math.max(1, Math.floor(saved.market.day));
+      copyCounts(state.market.supply, saved.market.supply);
+      copyCounts(state.market.demand, saved.market.demand);
+      copyCounts(state.market.negotiatedDay, saved.market.negotiatedDay);
+      copyCounts(state.market.negotiatedOffer, saved.market.negotiatedOffer);
+      if (typeof saved.market.message === "string") state.market.message = saved.market.message.slice(0, 240);
+    }
+    if (saved.run && typeof saved.run === "object") {
+      ["kills", "found", "totalRuns", "bestRun"].forEach((key) => {
+        const value = saved.run?.[key as keyof typeof saved.run];
+        if (typeof value === "number" && Number.isFinite(value)) state.run[key as keyof typeof state.run] = Math.max(0, Math.floor(value)) as never;
+      });
+      if (typeof saved.run.lastSummary === "string") state.run.lastSummary = saved.run.lastSummary.slice(0, 240);
+    }
+    if (saved.totals && typeof saved.totals === "object") {
+      if (typeof saved.totals.coinsEarned === "number" && Number.isFinite(saved.totals.coinsEarned)) state.totals.coinsEarned = Math.max(0, saved.totals.coinsEarned);
+      if (typeof saved.totals.itemsSold === "number" && Number.isFinite(saved.totals.itemsSold)) state.totals.itemsSold = Math.max(0, Math.floor(saved.totals.itemsSold));
+    }
+  } catch {
+    // Ignore an invalid or outdated save and start with a fresh game.
+  }
+}
 
 export function resourceById(id: ResourceId): Resource {
   return RESOURCES.find((item) => item.id === id)!;
