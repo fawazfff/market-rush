@@ -62,6 +62,13 @@ export class BazaarScene extends Phaser.Scene {
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       this.target = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
     });
+    const touchInteract = () => {
+      const nearGate = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.gate.x, this.gate.y + 50) < 92;
+      if (nearGate) this.game.events.emit("enter-dungeon");
+      else this.game.events.emit("toast", "Move close to the glowing rift gate to enter.");
+    };
+    this.game.events.on("touch-interact", touchInteract);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.events.off("touch-interact", touchInteract));
     this.game.events.emit("scene-mode", "bazaar");
     this.game.events.emit("toast", "Welcome to the Lantern Bazaar. Your next expedition starts at the rift gate.");
   }
