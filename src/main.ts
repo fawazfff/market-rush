@@ -14,6 +14,8 @@ import {
   finishExpedition,
   marketPrice,
   marketReason,
+  loadSavedGame,
+  saveGame,
   sellAllLoot,
   state,
   upgradeWeapon,
@@ -34,6 +36,7 @@ const setWidth = (id: string, value: number) => {
 };
 let game: Phaser.Game | null = null;
 let marketClock = 0;
+loadSavedGame();
 
 function notify(message: string): void {
   setText("toast-message", message);
@@ -116,12 +119,14 @@ function render(): void {
   const tonicButton = byId("use-tonic") as HTMLButtonElement | null;
   if (tonicButton) tonicButton.disabled = state.potions <= 0 || state.health >= state.maxHealth;
   const upgradeButton = byId("upgrade-blade") as HTMLButtonElement | null;
+  setText("forge-fee", (35 + state.weaponTier * 25) + "c");
   if (upgradeButton) {
     upgradeButton.disabled = state.weaponTier >= 2;
     setText("upgrade-price", state.weaponTier >= 2 ? "MAX LEVEL" : (70 + state.weaponTier * 45) + " COINS");
   }
   renderInventory();
   renderMarket();
+  saveGame();
 }
 
 function createGame(): void {
@@ -218,6 +223,7 @@ byId("back-to-menu")?.addEventListener("click", () => {
   byId("landing")?.classList.remove("is-hidden");
 });
 window.addEventListener("beforeunload", () => {
+  saveGame();
   window.clearInterval(marketClock);
   game?.destroy(true);
 });
