@@ -73,6 +73,18 @@ export class DungeonScene extends Phaser.Scene {
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       this.target = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
     });
+    const touchAttack = () => this.attack();
+    const touchInteract = () => {
+      const nearExit = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.exit.x, this.exit.y + 34) < 78;
+      if (nearExit) this.game.events.emit("extract-now", false);
+      else this.game.events.emit("toast", "Move close to the glowing gate to extract.");
+    };
+    this.game.events.on("touch-attack", touchAttack);
+    this.game.events.on("touch-interact", touchInteract);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off("touch-attack", touchAttack);
+      this.game.events.off("touch-interact", touchInteract);
+    });
     this.game.events.emit("scene-mode", "dungeon");
     this.game.events.emit("toast", "Find the creatures, strike with SPACE, then walk over their drops. Extract at the glowing gate.");
     this.game.events.emit("state-change");
