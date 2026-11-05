@@ -11,7 +11,10 @@ The current playable slice includes:
 - A full-screen landing page followed by a separate Phaser game.
 - A walkable bazaar hub with a visible rift gate.
 - A top-down dungeon with enemy movement, melee attacks, health, loot drops and extraction.
-- Three resources with prices affected by market supply and demand.
+- Five resources with prices affected by market supply and demand.
+- Individual item sales, sell-all, and a once-per-market-day broker negotiation.
+- Craft healing tonics from moonleaf and slime cores.
+- Reinforce the blade using ember ore, ironwood and coins.
 - A broker explanation for why each resource is priced the way it is.
 - A sell-all action, healing tonics and weapon upgrades.
 - A market clock where one real minute advances seven in-game days.
@@ -54,8 +57,8 @@ npm run preview
 The item pricing rules live in `src/economy.ts`.
 
 - Each resource has a base price, a bazaar stock level and a demand level.
-- The broker offer moves with the difference between demand and stock.
-- Selling loot increases stock and eases demand, which can lower the next offer.
+- The broker offer moves with the difference between demand and stock. A player can negotiate once per resource each market day; the broker reacts to shortages and oversupply.
+- Selling loot increases stock and eases demand, which can lower the next offer. Selling an item uses the negotiated offer when one is active.
 - The market advances seven days per real minute. Daily supply and demand shifts are deterministic, so the market can be inspected and reproduced.
 
 ## NEAR integration
