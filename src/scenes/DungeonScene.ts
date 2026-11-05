@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { addLoot, damagePlayer, playerDamage, recordKill, state, type ResourceId } from "../economy";
+import { addLoot, damagePlayer, playerDamage, recordKill, type ResourceId } from "../economy";
 
 type MoveKeys = Record<string, Phaser.Input.Keyboard.Key>;
 type Enemy = {
