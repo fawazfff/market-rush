@@ -10,7 +10,7 @@ The current playable slice includes:
 
 - A full-screen landing page followed by a separate Phaser game.
 - A walkable bazaar hub with a visible rift gate.
-- A top-down dungeon with enemy movement, melee attacks, health, loot drops and extraction.
+- A top-down dungeon with melee combat, enemy health bars, knockback, dodge movement, loot drops and a sealed extraction gate that opens after the room is cleared.
 - Five resources with prices affected by market supply and demand.
 - Individual item sales, sell-all, and a once-per-market-day broker negotiation.
 - Craft healing tonics from moonleaf and slime cores.
@@ -27,6 +27,7 @@ The current playable slice includes:
 - **WASD / arrow keys:** move.
 - **Click inside the game world:** walk to that location.
 - **Space:** attack a nearby creature.
+- **Shift:** dodge in a direction and briefly avoid damage.
 - **E:** enter the rift or extract when standing near the gate.
 - The right-side market panel can be used at any time while in the bazaar.
 
