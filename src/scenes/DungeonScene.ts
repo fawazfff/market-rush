@@ -211,8 +211,15 @@ export class DungeonScene extends Phaser.Scene {
       .map((enemy) => ({ enemy, distance: Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y) }))
       .filter((item) => item.distance <= 78)
       .sort((a, b) => a.distance - b.distance)[0];
-    const slash = this.add.circle(this.player.x + 18, this.player.y - 8, 30, 0xf2d79d, 0.13).setStrokeStyle(4, 0xe4c48a, 0.85);
-    this.tweens.add({ targets: slash, alpha: 0, scale: 1.45, duration: 220, onComplete: () => slash.destroy() });
+    const slash = this.add.graphics();
+    slash.fillStyle(0xf2d79d, 0.9);
+    slash.fillRect(-2, -20, 4, 40);
+    slash.fillRect(2, -16, 4, 32);
+    slash.fillStyle(0xe4c48a, 0.8);
+    slash.fillRect(6, -10, 4, 20);
+    slash.setPosition(this.player.x + 22, this.player.y - 7);
+    slash.setRotation(0.55);
+    this.tweens.add({ targets: slash, alpha: 0, scaleX: 1.4, duration: 180, onComplete: () => slash.destroy() });
     if (!target) {
       this.game.events.emit("toast", "Move closer to a creature before striking.");
       return;
@@ -255,17 +262,27 @@ export class DungeonScene extends Phaser.Scene {
 
   private createDrop(x: number, y: number, id: ResourceId): void {
     const root = this.add.container(x, y);
-    const glow = this.add.circle(0, 0, 17, 0xd8bd7c, 0.13);
-    const gem = this.add.circle(0, 0, id === "riftCrystal" ? 10 : 8, id === "emberOre" ? 0xd9784d : id === "moonleaf" ? 0x9caf7c : id === "firewood" ? 0x9b7650 : id === "riftCrystal" ? 0xb5a0d5 : 0x79a7a0);
-    const label = this.add.text(0, 17, resourceById(id).name.toUpperCase(), {
-      fontFamily: "Arial",
-      fontSize: "8px",
-      color: "#e7d7b5",
-      fontStyle: "bold",
-      letterSpacing: 1,
+    const shadow = this.add.rectangle(0, 8, 24, 5, 0x121713, 0.65);
+    const color = id === "riftCrystal" ? 0xb6a4d8 : id === "emberOre" ? 0xd9784d : id === "moonleaf" ? 0x9caf7c : id === "firewood" ? 0x9b7650 : 0x79a7a0;
+    const sprite = pixelSprite(this, [
+      "....DDDD....",
+      "...DCCCCD...",
+      "..DCCCCCCD..",
+      ".DCCCCCCCCD.",
+      ".DCCCCCCCCD.",
+      "..DCCCCCCD..",
+      "...DCCCCD...",
+      "....DDDD....",
+    ], { D: 0x202820, C: color }, 2);
+    sprite.setPosition(0, -4);
+    const shine = this.add.rectangle(-3, -10, 3, 5, 0xf0e4c4, 0.8);
+    const label = this.add.text(0, 15, resourceById(id).name.toUpperCase(), {
+      fontFamily: "Arial", fontSize: "8px", color: "#e7d7b5",
+      fontStyle: "bold", letterSpacing: 1,
+      backgroundColor: "#202820", padding: { x: 3, y: 2 },
     }).setOrigin(0.5);
-    root.add([glow, gem, label]);
-    this.tweens.add({ targets: root, y: y - 5, duration: 650, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    root.add([shadow, sprite, shine, label]);
+    this.tweens.add({ targets: root, y: y - 4, duration: 650, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.drops.push({ root, x, y, id });
   }
 
