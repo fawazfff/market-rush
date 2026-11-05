@@ -114,7 +114,7 @@ function serve() {
   save(); render();
 }
 function endDay() {
-  const rivalSales = state.rivals.map(r => 1 + Math.floor(Math.random() * 3));
+  const rivalSales = state.rivals.map(() => 1 + Math.floor(Math.random() * 3));
   state.rivals.forEach((r, i) => { r.today += rivalSales[i]; r.coins += rivalSales[i] * (25 + Math.floor(Math.random() * 10)); });
   for (const item of ingredients) {
     const m = state.market[item.id];
