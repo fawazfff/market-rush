@@ -1,33 +1,207 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#f3ead9"/>
-<title>Market Rush | Run the lunch street</title><meta name="description" content="Cook fast, serve hungry customers and outsmart the street market."/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171d1b" />
+  <title>Market Rush | The dungeon makes the loot</title>
+  <meta name="description" content="Explore a 2D dungeon, bring home rare resources, and trade in a living fantasy bazaar." />
 </head>
 <body>
-<div id="app">
-<header class="topbar"><a class="brand" href="/"><span class="brand-mark">MR</span><span>Market Rush</span></a><div class="shift"><span>DAY <b id="day">01</b></span><span class="shift-dot"></span><span id="shift-label">LUNCH SHIFT</span></div><div class="wallet"><span>◉</span><strong id="coins">100</strong><small>coins</small></div></header>
-<main class="layout">
-<section class="intro"><div><p class="eyebrow">YOUR LITTLE FOOD BUSINESS</p><h1>Make the lunch rush count.</h1><p>Cook what people want. Watch what your neighbours are doing.</p></div><div class="rep-chip"><span>★</span><b id="rep">50</b><small>reputation</small></div></section>
-<section class="world-wrap"><div id="game" class="world" aria-label="Interactive 2D food market street"></div><div class="world-caption"><span><i></i> STREET IS OPEN</span><span>CLICK A CUSTOMER TO SEE THEIR ORDER</span></div></section>
-<section class="play-area">
-<div class="kitchen panel">
-<div class="section-head"><div><span class="eyebrow">BEHIND THE COUNTER</span><h2>Your kitchen</h2></div><div class="timer"><span>SHIFT</span><b id="shift-time">02:00</b></div></div>
-<div class="order-ticket"><div class="ticket-icon" id="order-icon">🍚</div><div class="ticket-copy"><small id="order-status">NEXT CUSTOMER</small><strong id="order-name">Jollof Rice Bowl</strong><span id="order-detail">1 rice · 1 tomato</span></div><button class="change-order" id="skip-order" title="Let this customer go">Skip</button></div>
-<div class="recipe-row" id="recipe-row"><button class="recipe active" data-recipe="jollof"><span>🍚</span><b>Jollof</b><small>18 coins</small></button><button class="recipe" data-recipe="suya"><span>🥙</span><b>Suya wrap</b><small>22 coins</small></button><button class="recipe" data-recipe="akara"><span>🫘</span><b>Akara bites</b><small>14 coins</small></button></div>
-<div class="cook-line"><div><span class="eyebrow">COOKING HEAT</span><span class="heat-hint" id="cook-hint">Hit SERVE when the marker enters the green zone.</span></div><div class="heat-track"><div class="heat-safe"></div><div class="heat-progress" id="heat-progress"></div><div class="heat-marker" id="heat-marker"></div></div></div>
-<div class="kitchen-actions"><button class="cook-button" id="cook-button"><span>🔥</span><b>Start cooking</b><small>Prepare this order</small></button><button class="serve-button" id="serve-button" disabled><b>Serve plate</b><small>Perfect timing earns tips</small></button></div>
-<p class="feedback" id="feedback" aria-live="polite">A customer is waiting. Let's get cooking.</p>
-</div>
-<aside class="side-column">
-<div class="panel pantry"><div class="section-head"><div><span class="eyebrow">YOUR INGREDIENTS</span><h2>Pantry</h2></div><span class="tiny-label">BUY FROM THE STREET</span></div><div class="pantry-list" id="pantry-list"></div></div>
-<div class="panel street-market"><div class="section-head"><div><span class="eyebrow">EVERYONE SHOPS HERE</span><h2>Street market</h2></div><span class="market-live"><i></i> LIVE</span></div><div class="market-list" id="market-list"></div><p class="market-story" id="market-story">Rivals shop from the same supplier. Their purchases affect your prices.</p></div>
-<div class="panel rivals"><div class="section-head"><div><span class="eyebrow">YOUR NEIGHBOURS</span><h2>Other stalls</h2></div></div><div id="rival-list"></div></div>
-</aside>
-</section>
-<section class="day-footer"><div><span class="eyebrow">TODAY'S BUSINESS</span><strong><b id="sold">0</b> plates served <i>·</i> <b id="revenue">0</b> coins earned</strong></div><button id="close-day">Close the day <span>→</span></button></section>
-</main>
-<div class="modal hidden" id="day-modal"><div class="modal-card"><span class="eyebrow">THE STREET IS QUIET</span><h2>That's a wrap.</h2><p id="day-summary">Your shift is over.</p><div class="summary-grid"><div><small>PLATES SERVED</small><b id="sum-sold">0</b></div><div><small>REVENUE</small><b id="sum-revenue">0</b></div><div><small>EXPENSES</small><b id="sum-expenses">0</b></div><div><small>NET PROFIT</small><b id="sum-profit">0</b></div></div><button id="next-day">Open tomorrow's stall</button></div></div>
-<footer>MARKET RUSH <span>·</span> A LIVING STREET FOOD ECONOMY</footer>
-</div><script type="module" src="/src/main.ts"></script>
-</body></html>
+  <div id="landing" class="landing">
+    <header class="landing-nav">
+      <a class="brand-lockup" href="/" aria-label="Market Rush home">
+        <span class="brand-emblem">MR</span>
+        <span>MARKET RUSH</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#how-it-works">HOW TO PLAY</a>
+        <span class="nav-divider"></span>
+        <span class="world-label"><i></i> A LIVING WORLD</span>
+      </nav>
+      <button class="nav-start" id="start-game">ENTER THE BAZAAR <span>↗</span></button>
+    </header>
+
+    <main class="landing-main">
+      <section class="landing-copy">
+        <div class="overline"><span class="overline-mark"></span> AN ADVENTURE IN A REAL ECONOMY</div>
+        <h1>The dungeon makes the loot.<br /><em>The market decides its worth.</em></h1>
+        <p>Fight your way into the Underroot Rift. Bring back what you find. Sell when the bazaar is hungry, save when prices are low, and gear up for a deeper run.</p>
+        <div class="landing-actions">
+          <button class="primary-cta" id="start-game-hero" onclick="document.getElementById('start-game')?.click()">
+            <span class="play-symbol">▶</span> START YOUR RUN <span class="cta-arrow">→</span>
+          </button>
+          <a class="quiet-link" href="#how-it-works">See how it works <span>↓</span></a>
+        </div>
+        <div class="landing-proof">
+          <div><b>01</b><span>Explore the rift</span></div>
+          <div><b>02</b><span>Trade the bazaar</span></div>
+          <div><b>03</b><span>Go further next time</span></div>
+        </div>
+      </section>
+
+      <section class="hero-art" aria-label="Illustration of the dungeon and bazaar">
+        <div class="art-topline"><span>THE UNDERROOT FRONTIER</span><span>MAP 01 / 07</span></div>
+        <svg class="world-art" viewBox="0 0 690 570" role="img" aria-label="A lantern-lit stone gate leading into an underground dungeon">
+          <defs>
+            <pattern id="stone" width="54" height="40" patternUnits="userSpaceOnUse">
+              <path d="M1 1H53V39H1Z" fill="none" stroke="#59635a" stroke-width="1" opacity=".44"/>
+              <path d="M27 1V18M0 20H54" stroke="#59635a" stroke-width="1" opacity=".24"/>
+            </pattern>
+            <pattern id="floor" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M0 0H40V40H0Z" fill="none" stroke="#a28d68" stroke-width="1" opacity=".32"/>
+            </pattern>
+          </defs>
+          <rect x="22" y="26" width="646" height="520" rx="14" fill="#222a25" stroke="#626b5b" stroke-width="1.5"/>
+          <rect x="34" y="38" width="622" height="496" rx="9" fill="#343d35"/>
+          <rect x="34" y="38" width="622" height="496" rx="9" fill="url(#stone)" opacity=".8"/>
+          <path d="M54 138H636V514H54Z" fill="#5b5947"/>
+          <path d="M54 138H636V514H54Z" fill="url(#floor)"/>
+          <path d="M74 158H616V495H74Z" fill="#434c40" stroke="#7c795f" stroke-width="2"/>
+          <path d="M74 158H616V495H74Z" fill="url(#floor)"/>
+          <g opacity=".9">
+            <path d="M76 160H614V185H76Z" fill="#242d27"/>
+            <path d="M78 486H612V510H78Z" fill="#252d27"/>
+            <path d="M75 186H97V484H75Z" fill="#2b332d"/>
+            <path d="M593 186H615V484H593Z" fill="#2b332d"/>
+          </g>
+          <g transform="translate(345 248)">
+            <ellipse cx="0" cy="171" rx="140" ry="28" fill="#101613" opacity=".65"/>
+            <path d="M-114 170V-26Q-114 -164 0 -164Q114 -164 114 -26V170H79V-22Q79 -122 0 -122Q-79 -122 -79 -22V170Z" fill="#827657"/>
+            <path d="M-91 155V-22Q-91 -141 0 -141Q91 -141 91 -22V155H59V-20Q59 -111 0 -111Q-59 -111 -59 -20V155Z" fill="#2d3930"/>
+            <path d="M-68 148V-18Q-68 -91 0 -91Q68 -91 68 -18V148Z" fill="#78917a" opacity=".34"/>
+            <path d="M-58 146V-17Q-58 -78 0 -78Q58 -78 58 -17V146" fill="none" stroke="#c1c49a" stroke-width="5" opacity=".9"/>
+            <path d="M-46 138V-14Q-46 -64 0 -64Q46 -64 46 -14V138" fill="none" stroke="#e3c78a" stroke-width="2" opacity=".7"/>
+            <path d="M-17 110L0 82L17 110L0 136Z" fill="#d7b46d" opacity=".7"/>
+            <circle cx="0" cy="-14" r="22" fill="#b9c49a" opacity=".12"/>
+          </g>
+          <g transform="translate(134 238)">
+            <rect x="-12" y="-20" width="24" height="75" rx="8" fill="#806344"/>
+            <path d="M-18 -22Q0 -54 18 -22Z" fill="#d0a462"/>
+            <circle cx="0" cy="-30" r="10" fill="#e1bd7a"/>
+            <circle cx="0" cy="-30" r="23" fill="#e1bd7a" opacity=".13"/>
+          </g>
+          <g transform="translate(556 238)">
+            <rect x="-12" y="-20" width="24" height="75" rx="8" fill="#806344"/>
+            <path d="M-18 -22Q0 -54 18 -22Z" fill="#d0a462"/>
+            <circle cx="0" cy="-30" r="10" fill="#e1bd7a"/>
+            <circle cx="0" cy="-30" r="23" fill="#e1bd7a" opacity=".13"/>
+          </g>
+          <g transform="translate(210 390)">
+            <ellipse cx="0" cy="48" rx="20" ry="8" fill="#1d231e" opacity=".5"/>
+            <path d="M-13 15L-19 47H19L13 15Z" fill="#9a5839"/>
+            <rect x="-12" y="-3" width="24" height="27" rx="6" fill="#506b5e"/>
+            <circle cx="0" cy="-16" r="10" fill="#d7b18c"/>
+            <path d="M-12 -18Q-8 -36 9 -27L13 -15Z" fill="#2d3931"/>
+            <path d="M14 2L27 31" stroke="#c7c4ad" stroke-width="5" stroke-linecap="round"/>
+          </g>
+          <g transform="translate(475 420)">
+            <ellipse cx="0" cy="30" rx="29" ry="11" fill="#171d19" opacity=".4"/>
+            <rect x="-26" y="0" width="52" height="31" rx="5" fill="#8b6948"/>
+            <path d="M-17 0V-12Q-17 -25 0 -25Q17 -25 17 -12V0" fill="#6c806b"/>
+            <circle cx="0" cy="-12" r="9" fill="#bdd0a0"/>
+            <path d="M-31 4H31" stroke="#d6bd8c" stroke-width="3"/>
+          </g>
+          <g fill="#d5b77b" font-family="Arial" font-size="9" letter-spacing="2">
+            <text x="61" y="82">RIFT ACCESS</text>
+            <text x="526" y="82">BAZAAR GATE</text>
+          </g>
+          <g transform="translate(92 460)">
+            <rect x="0" y="0" width="112" height="34" rx="7" fill="#242c26" stroke="#7c866e"/>
+            <circle cx="16" cy="17" r="5" fill="#a6b78f"/>
+            <text x="30" y="21" fill="#e7d8b5" font-family="Arial" font-size="9" letter-spacing="1">SAFE RETURN</text>
+          </g>
+          <g transform="translate(486 468)">
+            <rect x="0" y="0" width="126" height="34" rx="7" fill="#242c26" stroke="#7c866e"/>
+            <circle cx="16" cy="17" r="5" fill="#dbad67"/>
+            <text x="30" y="21" fill="#e7d8b5" font-family="Arial" font-size="9" letter-spacing="1">TRADE YOUR LOOT</text>
+          </g>
+        </svg>
+        <div class="art-caption"><span>AN EXPEDITION IS NEVER JUST A FIGHT</span><span>✦</span><span>EVERY FIND HAS A PRICE</span></div>
+      </section>
+    </main>
+
+    <section class="how-strip" id="how-it-works">
+      <div class="how-heading"><span>THE LOOP</span><b>Three moves. A world that reacts.</b></div>
+      <div class="how-step"><span>01 / EXPLORE</span><b>Fight. Find. Extract.</b><small>Every creature can drop something useful.</small></div>
+      <div class="how-step"><span>02 / TRADE</span><b>Read the market.</b><small>Scarcity and demand change what buyers pay.</small></div>
+      <div class="how-step"><span>03 / PREPARE</span><b>Upgrade for the next run.</b><small>Better gear lets you reach better loot.</small></div>
+    </section>
+    <footer class="landing-footer"><span>MARKET RUSH</span><span>BUILT AROUND A LIVING GAME ECONOMY</span><span>NEAR HACKATHON · 2026</span></footer>
+  </div>
+
+  <div id="game-shell" class="game-shell is-hidden">
+    <header class="game-topbar">
+      <a class="brand-lockup" href="#" id="back-to-menu">
+        <span class="brand-emblem">MR</span>
+        <span>MARKET RUSH</span>
+      </a>
+      <div class="topbar-center"><span class="topbar-kicker">THE FRONTIER</span><b id="area-name">THE LANTERN BAZAAR</b></div>
+      <div class="topbar-right">
+        <div class="coin-count"><span>◈</span><b id="coin-count">100</b><small>COINS</small></div>
+        <div class="market-day">MARKET DAY <b id="market-day">01</b></div>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <section class="play-column">
+        <div class="play-heading">
+          <div><span class="scene-status" id="scene-status">SAFE ZONE</span><h1 id="area-subtitle">Trade well. Prepare well. Then go deeper.</h1></div>
+          <div class="play-actions">
+            <button id="enter-rift" class="enter-button">ENTER THE RIFT <span>↗</span></button>
+            <button id="return-bazaar" class="return-button hidden">RETURN TO BAZAAR <span>↗</span></button>
+          </div>
+        </div>
+        <div class="canvas-frame">
+          <div id="game-world" aria-label="Playable 2D game world"></div>
+          <div class="canvas-controls"><span><kbd>W A S D</kbd> MOVE</span><span><kbd>SPACE</kbd> ATTACK</span><span><kbd>E</kbd> INTERACT</span><span>CLICK TO WALK</span></div>
+        </div>
+        <div class="field-notes">
+          <div class="field-note"><span class="note-icon">⌁</span><span><b>30 SECOND LOOP</b><small>Move, fight, dodge and collect drops.</small></span></div>
+          <div class="field-note"><span class="note-icon">◇</span><span><b>5 MINUTE LOOP</b><small>Sell, restock and improve your gear.</small></span></div>
+          <div class="field-note"><span class="note-icon">◷</span><span><b>MARKET CLOCK</b><small>One real minute advances seven market days.</small></span></div>
+        </div>
+      </section>
+
+      <aside class="market-column">
+        <section class="panel player-panel">
+          <div class="panel-title"><div><span class="panel-kicker">YOUR ADVENTURER</span><h2>Ready for the next run</h2></div><span class="level-mark">01</span></div>
+          <div class="health-line"><span>HEALTH</span><b id="health-number">100 / 100</b></div>
+          <div class="health-track"><i id="health-fill"></i></div>
+          <div class="player-stats">
+            <div><span>WEAPON</span><b id="blade-level">Worn blade</b><small id="blade-damage"> 15 damage</small></div>
+            <div><span>TONICS</span><b id="tonic-count">1</b><small>in your pack</small></div>
+          </div>
+          <button id="use-tonic" class="subtle-button">USE HEALING TONIC</button>
+        </section>
+
+        <section class="panel inventory-panel">
+          <div class="panel-title"><div><span class="panel-kicker">RECOVERED ITEMS</span><h2>Your pack <small id="item-count">0</small></h2></div><button id="sell-loot" class="text-button" disabled>SELL ALL ↗</button></div>
+          <div id="inventory-list" class="inventory-list"></div>
+        </section>
+
+        <section class="panel market-panel">
+          <div class="panel-title"><div><span class="panel-kicker">MARA'S EXCHANGE</span><h2>Today's market</h2></div><span class="live-mark"><i></i> LIVE</span></div>
+          <div class="market-columns"><span>RESOURCE / BROKER OFFER</span><span>PRICE</span></div>
+          <div id="market-list" class="market-list"></div>
+          <p class="market-story" id="market-story">The first caravan is late. Ember ore is already drawing attention.</p>
+        </section>
+
+        <section class="panel upgrade-panel">
+          <div class="panel-title"><div><span class="panel-kicker">SPEND YOUR COINS</span><h2>Prepare for deeper runs</h2></div></div>
+          <div class="upgrade-row"><span class="upgrade-icon">✚</span><span><b>Healing tonic</b><small>Restore 42 health</small></span><button id="buy-tonic">20c <i>+</i></button></div>
+          <div class="upgrade-row"><span class="upgrade-icon">⚔</span><span><b>Blade upgrade</b><small>Deal more damage per hit</small></span><button id="upgrade-blade"><span id="upgrade-price">70 COINS</span> <i>↗</i></button></div>
+        </section>
+
+        <section class="run-panel">
+          <div class="run-head"><span>EXPEDITION RECORD</span><b><span id="run-count">0</span> RUNS</b></div>
+          <div class="run-numbers"><div><b id="run-kills">0</b><small>CREATURES</small></div><div><b id="run-finds">0</b><small>FINDS</small></div><div><b id="total-earned">0</b><small>COINS EARNED</small></div></div>
+          <p id="run-summary">Your first expedition is waiting.</p>
+        </section>
+      </aside>
+    </main>
+    <div id="toast" class="toast"><span>✦</span><p id="toast-message">Welcome to the Lantern Bazaar.</p></div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

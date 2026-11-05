@@ -1,12 +1,29 @@
 # Market Rush
 
-A 2D street-food business simulation where players compete in a living economy.
+A 2D dungeon-and-market game built around one simple idea: **the dungeon creates the resources, but the bazaar decides what those resources are worth.**
 
-You run a food stall on a shared market street. Customers have budgets and preferences, rival stalls make their own business decisions, and suppliers have limited stock. Ingredient prices and customer demand change as the street trades.
+Explore the Underroot Rift, fight creatures, collect rare materials, and return to the Lantern Bazaar. Sell when demand is high, hold items when the offer is weak, and spend your earnings on better equipment before the next expedition.
 
-## Current status
+## Current build
 
-Early prototype. The first milestone is a playable 2D street scene. The economy simulation and NEAR integration will be added in later milestones.
+The current playable slice includes:
+
+- A full-screen landing page followed by a separate Phaser game.
+- A walkable bazaar hub with a visible rift gate.
+- A top-down dungeon with enemy movement, melee attacks, health, loot drops and extraction.
+- Three resources with prices affected by market supply and demand.
+- A broker explanation for why each resource is priced the way it is.
+- A sell-all action, healing tonics and weapon upgrades.
+- A market clock where one real minute advances seven in-game days.
+- Keyboard movement and click-to-walk controls.
+
+## Controls
+
+- **WASD / arrow keys:** move.
+- **Click inside the game world:** walk to that location.
+- **Space:** attack a nearby creature.
+- **E:** enter the rift or extract when standing near the gate.
+- The right-side market panel can be used at any time while in the bazaar.
 
 ## Tech stack
 
@@ -32,27 +49,24 @@ npm run build
 npm run preview
 ```
 
-## Game direction
+## Economy rules
 
-- One street with a player-owned food stall and two rival stalls.
-- Customers have wallets, food preferences and patience.
-- A shared supplier sells limited ingredient stock.
-- Stalls buy ingredients, prepare meals and set prices.
-- Supply, demand and competition change the market over time.
-- A fast-forward mode simulates seven in-game days.
+The item pricing rules live in `src/economy.ts`.
+
+- Each resource has a base price, a bazaar stock level and a demand level.
+- The broker offer moves with the difference between demand and stock.
+- Selling loot increases stock and eases demand, which can lower the next offer.
+- The market advances seven days per real minute. Daily supply and demand shifts are deterministic, so the market can be inspected and reproduced.
 
 ## NEAR integration
 
-Planned for the hackathon build:
-- NEAR social/email authentication.
-- NEP-245 multi-token items for ingredients and prepared food.
-- A game contract for player stall ownership and in-game economic records.
+The current slice is a local gameplay prototype. NEAR authentication and NEP-245 ownership/transfer settlement are **not yet implemented**.
 
-Normal gameplay should not require seed phrases, wallet popups or gas prompts.
+The intended integration is to make recovered game items ownable and tradable on NEAR testnet, with the game contract handling meaningful item and trade updates. Player movement, combat and other moment-to-moment actions should stay local; only meaningful economic actions should be settled on-chain. Normal play should not require seed phrases, wallet popups or manual gas prompts.
 
-## Development principles
+## Hackathon development principles
 
-- Keep the game understandable without blockchain knowledge.
-- Make NPC decisions deterministic, inspectable and explainable.
-- Keep moment-to-moment simulation responsive; batch meaningful state changes for on-chain settlement.
-- Build a small, complete game loop before adding content.
+- The game should make sense without crypto knowledge.
+- Dungeon loot and market prices should affect each other.
+- Merchant decisions and pricing rules should remain readable.
+- Build a small complete game loop before adding more content.

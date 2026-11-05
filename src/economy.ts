@@ -1,179 +1,176 @@
-export type IngredientId = "rice" | "tomato" | "beef" | "pepper" | "beans" | "oil";
-export type RecipeId = "jollof" | "suya" | "akara";
-export type Recipe = {
-  id: RecipeId;
+export type ResourceId = "emberOre" | "moonleaf" | "slimeCore";
+
+export type Resource = {
+  id: ResourceId;
   name: string;
-  shortName: string;
   icon: string;
-  ingredients: Partial<Record<IngredientId, number>>;
+  description: string;
   basePrice: number;
-  cookTime: number;
 };
 
-export const RECIPES: Recipe[] = [
-  { id: "jollof", name: "Jollof Rice Bowl", shortName: "Jollof", icon: "🍚", ingredients: { rice: 1, tomato: 1 }, basePrice: 18, cookTime: 2200 },
-  { id: "suya", name: "Suya Wrap", shortName: "Suya", icon: "🥙", ingredients: { beef: 1, pepper: 1 }, basePrice: 22, cookTime: 2600 },
-  { id: "akara", name: "Akara Bites", shortName: "Akara", icon: "🫘", ingredients: { beans: 1, oil: 1 }, basePrice: 14, cookTime: 1900 },
+export const RESOURCES: Resource[] = [
+  { id: "emberOre", name: "Ember ore", icon: "◆", description: "Warm metal mined near the rift.", basePrice: 16 },
+  { id: "moonleaf", name: "Moonleaf", icon: "✦", description: "A rare herb used by travelling healers.", basePrice: 11 },
+  { id: "slimeCore", name: "Slime core", icon: "●", description: "A useful alchemy ingredient.", basePrice: 13 },
 ];
 
-export const INGREDIENTS: { id: IngredientId; label: string; icon: string; basePrice: number }[] = [
-  { id: "rice", label: "Rice", icon: "🌾", basePrice: 4 },
-  { id: "tomato", label: "Tomato", icon: "🍅", basePrice: 3 },
-  { id: "beef", label: "Beef", icon: "🥩", basePrice: 6 },
-  { id: "pepper", label: "Pepper", icon: "🌶️", basePrice: 2 },
-  { id: "beans", label: "Beans", icon: "🫘", basePrice: 4 },
-  { id: "oil", label: "Oil", icon: "🫗", basePrice: 3 },
-];
-
-export type Rival = {
-  id: "grill" | "akara";
-  name: string;
-  recipe: RecipeId;
-  coins: number;
-  meals: number;
-  price: number;
-  sold: number;
-};
+export type ResourceCounts = Record<ResourceId, number>;
 
 export const state = {
-  day: 1,
   coins: 100,
-  reputation: 50,
-  sold: 0,
-  revenue: 0,
-  expenses: 0,
-  prices: { jollof: 18, suya: 22, akara: 14 } as Record<RecipeId, number>,
-  stock: { rice: 3, tomato: 3, beef: 2, pepper: 2, beans: 2, oil: 2 } as Record<IngredientId, number>,
-  supplier: { rice: 22, tomato: 20, beef: 14, pepper: 18, beans: 16, oil: 14 } as Record<IngredientId, number>,
-  wholesale: { rice: 4, tomato: 3, beef: 6, pepper: 2, beans: 4, oil: 3 } as Record<IngredientId, number>,
-  rivals: [
-    { id: "grill", name: "Grill House", recipe: "suya", coins: 55, meals: 3, price: 23, sold: 0 },
-    { id: "akara", name: "Aunty B's Akara", recipe: "akara", coins: 48, meals: 3, price: 15, sold: 0 },
-  ] as Rival[],
-  marketMessage: "The supplier is open. Stock up before the lunch crowd arrives.",
-  shiftSeconds: 120,
-  shiftOpen: true,
+  health: 100,
+  maxHealth: 100,
+  potions: 1,
+  weaponTier: 0,
+  bag: { emberOre: 0, moonleaf: 0, slimeCore: 0 } as ResourceCounts,
+  market: {
+    day: 1,
+    supply: { emberOre: 5, moonleaf: 9, slimeCore: 4 } as ResourceCounts,
+    demand: { emberOre: 9, moonleaf: 4, slimeCore: 7 } as ResourceCounts,
+    message: "The first caravan is late. Ember ore is already drawing attention.",
+  },
+  run: {
+    kills: 0,
+    found: 0,
+    totalRuns: 0,
+    bestRun: 0,
+    lastSummary: "Your first expedition is waiting.",
+  },
+  totals: {
+    coinsEarned: 0,
+    itemsSold: 0,
+  },
 };
 
-export function recipeById(id: RecipeId) {
-  return RECIPES.find((recipe) => recipe.id === id)!;
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+export function resourceById(id: ResourceId): Resource {
+  return RESOURCES.find((item) => item.id === id)!;
 }
 
-export function canCook(id: RecipeId) {
-  const recipe = recipeById(id);
-  return Object.entries(recipe.ingredients).every(([key, amount]) =>
-    state.stock[key as IngredientId] >= (amount ?? 0),
-  );
+export function marketPrice(id: ResourceId): number {
+  const item = resourceById(id);
+  const supply = state.market.supply[id];
+  const demand = state.market.demand[id];
+  const pressure = clamp((demand - supply) * 0.055, -0.28, 0.62);
+  return Math.max(2, Math.round(item.basePrice * (1 + pressure)));
 }
 
-export function buyIngredient(id: IngredientId, quantity = 2) {
-  const cost = state.wholesale[id] * quantity;
-  if (state.supplier[id] < quantity) return `Only ${state.supplier[id]} ${INGREDIENTS.find((item) => item.id === id)?.label.toLowerCase()} left at the supplier.`;
-  if (state.coins < cost) return "You don't have enough coins for that purchase.";
-  state.coins -= cost;
-  state.expenses += cost;
-  state.stock[id] += quantity;
-  state.supplier[id] -= quantity;
-  state.marketMessage = `You bought ${quantity} units of ${id} for ${cost} coins.`;
-  return state.marketMessage;
+export function marketReason(id: ResourceId): string {
+  const supply = state.market.supply[id];
+  const demand = state.market.demand[id];
+  if (demand - supply >= 4) return "Buyers outnumber stock";
+  if (supply - demand >= 4) return "Plenty on the shelves";
+  return "Trading at a steady pace";
 }
 
-export function changePrice(id: RecipeId, amount: number) {
-  state.prices[id] = Math.max(8, Math.min(35, state.prices[id] + amount));
-  return `${recipeById(id).shortName} now costs ${state.prices[id]} coins.`;
+export function beginExpedition(): void {
+  state.run.kills = 0;
+  state.run.found = 0;
+  if (state.health <= 0) state.health = 35;
 }
 
-export function completeOrder(id: RecipeId, quality: number) {
-  const recipe = recipeById(id);
-  if (!canCook(id)) return { ok: false, message: "You're out of an ingredient. Restock before taking another order." };
-  for (const [key, amount] of Object.entries(recipe.ingredients)) {
-    state.stock[key as IngredientId] -= amount ?? 0;
+export function addLoot(id: ResourceId): void {
+  state.bag[id] += 1;
+  state.run.found += 1;
+}
+
+export function recordKill(): void {
+  state.run.kills += 1;
+}
+
+export function damagePlayer(amount: number): boolean {
+  state.health = clamp(state.health - amount, 0, state.maxHealth);
+  return state.health <= 0;
+}
+
+export function healPlayer(amount: number): void {
+  state.health = clamp(state.health + amount, 0, state.maxHealth);
+}
+
+export function playerDamage(): number {
+  return 15 + state.weaponTier * 7;
+}
+
+export function finishExpedition(knockedOut = false): string {
+  state.run.totalRuns += 1;
+  state.run.bestRun = Math.max(state.run.bestRun, state.run.kills);
+  if (knockedOut) {
+    const carried = RESOURCES.find((item) => state.bag[item.id] > 0);
+    if (carried) state.bag[carried.id] = Math.max(0, state.bag[carried.id] - 1);
+    state.health = 40;
+    state.run.lastSummary = "You were carried out of the rift. One item was lost, but the rest made it back.";
+  } else {
+    state.run.lastSummary = state.run.kills + " creatures defeated and " + state.run.found + " finds recovered. Your loot is safe in the bag.";
+    state.health = Math.max(35, state.health);
   }
-  const base = state.prices[id];
-  const earned = Math.max(1, Math.round(base * quality));
-  const tip = quality >= 1.18 ? 2 : quality >= 0.95 ? 1 : 0;
-  state.coins += earned + tip;
-  state.revenue += earned + tip;
-  state.sold += 1;
-  if (quality >= 1.18) state.reputation = Math.min(100, state.reputation + 2);
-  else if (quality >= 0.95) state.reputation = Math.min(100, state.reputation + 1);
-  else state.reputation = Math.max(0, state.reputation - 1);
-  return {
-    ok: true,
-    earned: earned + tip,
-    message: quality >= 1.18 ? `Perfect plate! ${earned + tip} coins earned, including a tip.` : quality >= 0.95 ? `Order served. You earned ${earned + tip} coins.` : `The food was overcooked. You earned ${earned + tip} coins, but lost a little reputation.`,
-  };
+  return state.run.lastSummary;
 }
 
-export function disappointCustomer() {
-  state.reputation = Math.max(0, state.reputation - 2);
-}
-
-function buyForRival(rival: Rival) {
-  const recipe = recipeById(rival.recipe);
-  if (rival.meals >= 4) return;
-  const needs = Object.entries(recipe.ingredients) as [IngredientId, number][];
-  if (needs.some(([id, amount]) => state.supplier[id] < amount || rival.coins < state.wholesale[id] * amount)) return;
-  for (const [id, amount] of needs) {
-    state.supplier[id] -= amount;
-    rival.coins -= state.wholesale[id] * amount;
+export function sellAllLoot(): { message: string; earned: number } {
+  let earned = 0;
+  let sold = 0;
+  for (const item of RESOURCES) {
+    const quantity = state.bag[item.id];
+    if (quantity <= 0) continue;
+    earned += quantity * marketPrice(item.id);
+    sold += quantity;
+    state.market.supply[item.id] = clamp(state.market.supply[item.id] + quantity, 0, 20);
+    state.market.demand[item.id] = clamp(state.market.demand[item.id] - Math.ceil(quantity / 2), 1, 14);
+    state.bag[item.id] = 0;
   }
-  rival.meals += 2;
+  if (sold === 0) return { message: "Your bag is empty. Take a trip through the rift first.", earned: 0 };
+  state.coins += earned;
+  state.totals.coinsEarned += earned;
+  state.totals.itemsSold += sold;
+  state.market.message = "You brought " + sold + " items to the bazaar. More stock means buyers can negotiate harder.";
+  return { message: "Sold " + sold + " items for " + earned + " coins.", earned };
 }
 
-export function rivalSale(rivalId: Rival["id"]) {
-  const rival = state.rivals.find((item) => item.id === rivalId);
-  if (!rival || rival.meals <= 0) return;
-  rival.meals -= 1;
-  rival.coins += rival.price;
-  rival.sold += 1;
-  if (rival.meals <= 1) rival.price = Math.min(30, rival.price + 1);
+export function buyPotion(): string {
+  const price = 20;
+  if (state.coins < price) return "You need " + price + " coins for a healing tonic.";
+  if (state.potions >= 4) return "You can carry up to four tonics.";
+  state.coins -= price;
+  state.potions += 1;
+  return "A healing tonic was added to your pack.";
 }
 
-export function marketPulse() {
-  for (const rival of state.rivals) {
-    buyForRival(rival);
-    if (rival.meals > 0 && Math.random() > 0.25) rivalSale(rival.id);
-    if (rival.meals >= 4) rival.price = Math.max(12, rival.price - 1);
+export function usePotion(): string {
+  if (state.potions <= 0) return "You have no healing tonics.";
+  if (state.health >= state.maxHealth) return "Your health is already full.";
+  state.potions -= 1;
+  healPlayer(42);
+  return "You used a tonic and recovered 42 health.";
+}
+
+export function upgradeWeapon(): string {
+  const price = 70 + state.weaponTier * 45;
+  if (state.weaponTier >= 2) return "Your blade is already at its highest level.";
+  if (state.coins < price) return "You need " + price + " coins for the next blade upgrade.";
+  state.coins -= price;
+  state.weaponTier += 1;
+  return "Blade upgraded. Each hit now deals " + playerDamage() + " damage.";
+}
+
+export function advanceMarketDay(): void {
+  state.market.day += 1;
+  RESOURCES.forEach((item, index) => {
+    const id = item.id;
+    const cycle = (state.market.day + index) % 4;
+    const supplyChange = cycle === 0 ? -2 : cycle === 1 ? 0 : 1;
+    const demandChange = cycle === 2 ? 2 : cycle === 0 ? 1 : -1;
+    state.market.supply[id] = clamp(state.market.supply[id] + supplyChange, 1, 18);
+    state.market.demand[id] = clamp(state.market.demand[id] + demandChange, 1, 14);
+  });
+  const pressure = RESOURCES
+    .map((item) => ({ item, score: state.market.demand[item.id] - state.market.supply[item.id] }))
+    .sort((a, b) => b.score - a.score)[0];
+  if (pressure.score >= 4) {
+    state.market.message = pressure.item.name + " is scarce today. The broker raised the offer because buyers are competing for fewer items.";
+  } else if (pressure.score <= -2) {
+    state.market.message = pressure.item.name + " is easy to find today. The broker lowered the offer because shelves are full.";
+  } else {
+    state.market.message = "Caravans are moving normally. Prices are settling as supply catches up with demand.";
   }
-
-  for (const item of INGREDIENTS) {
-    const available = state.supplier[item.id];
-    const pressure = Math.max(0, 1 - available / 20);
-    state.wholesale[item.id] = Math.max(1, Math.round(item.basePrice * (1 + pressure * 0.9)));
-    state.supplier[item.id] = Math.min(28, available + 1);
-  }
-
-  const scarce = INGREDIENTS
-    .filter((item) => state.supplier[item.id] <= 5)
-    .sort((a, b) => state.supplier[a.id] - state.supplier[b.id])[0];
-  state.marketMessage = scarce
-    ? `${scarce.label} is running low. The whole street is paying more for it.`
-    : "Supplier prices are moving with demand. Rivals are restocking too.";
-}
-
-export function closeShift() {
-  state.shiftOpen = false;
-  const rent = 5;
-  state.coins = Math.max(0, state.coins - rent);
-  state.expenses += rent;
-  return {
-    day: state.day,
-    sold: state.sold,
-    revenue: state.revenue,
-    expenses: state.expenses,
-    profit: state.revenue - state.expenses,
-    reputation: state.reputation,
-  };
-}
-
-export function startNextDay() {
-  state.day += 1;
-  state.sold = 0;
-  state.revenue = 0;
-  state.expenses = 0;
-  state.shiftSeconds = 120;
-  state.shiftOpen = true;
-  for (const item of INGREDIENTS) state.supplier[item.id] = Math.min(28, state.supplier[item.id] + 4);
-  state.marketMessage = `Day ${state.day}. The street is opening up again.`;
 }
