@@ -16,6 +16,7 @@ import {
   state,
   upgradeWeapon,
   usePotion,
+  type ResourceId,
 } from "./economy";
 import "./style.css";
 import "./market.css";
