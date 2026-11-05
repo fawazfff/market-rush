@@ -84,7 +84,7 @@ function renderMarket(): void {
   const host = byId("market-list");
   if (!host) return;
   host.innerHTML = RESOURCES.map((item) => {
-    const price = marketPrice(item.id);
+    const price = brokerOffer(item.id);
     const supply = state.market.supply[item.id];
     const demand = state.market.demand[item.id];
     return '<article class="market-row">' +
