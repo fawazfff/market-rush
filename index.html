@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f1e8" />
+    <title>Market Rush</title>
+    <meta name="description" content="Run a street-food stall in a living economy." />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Market Rush home">
+          <span class="brand-mark">MR</span>
+          <span>Market Rush</span>
+        </a>
+        <div class="day-label">DAY <strong id="day">01</strong></div>
+        <div class="wallet"><span class="coin">●</span><strong id="money">100</strong><span>coins</span></div>
+      </header>
+      <main class="game-shell">
+        <section class="game-heading">
+          <div>
+            <p class="eyebrow">MARKET STREET</p>
+            <h1>Lunch rush is coming.</h1>
+            <p class="subheading">Keep your stall stocked, serve the street and watch the market.</p>
+          </div>
+          <div class="open-status"><span></span> STALL OPEN</div>
+        </section>
+        <div id="game" class="game-frame" aria-label="Market Rush game"></div>
+        <section class="control-bar">
+          <div class="inventory">
+            <span class="control-label">YOUR STOCK</span>
+            <div><span>Rice</span><strong id="rice-stock">5</strong></div>
+            <div><span>Tomatoes</span><strong id="tomato-stock">5</strong></div>
+          </div>
+          <div class="actions">
+            <button id="buy-button" class="secondary-button">Buy ingredients <span>−20 coins</span></button>
+            <button id="serve-button" class="primary-button">Prepare rice bowl <span>Serve a customer</span></button>
+          </div>
+        </section>
+        <p id="message" class="message" aria-live="polite">Your stall is ready. Buy ingredients or serve your first customer.</p>
+      </main>
+      <footer>MARKET RUSH <span>·</span> A SMALL STREET WITH A BIG ECONOMY</footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
