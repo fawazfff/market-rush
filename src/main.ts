@@ -12,7 +12,6 @@ import {
   craftBlade,
   craftTonic,
   finishExpedition,
-  marketPrice,
   marketReason,
   loadSavedGame,
   saveGame,
