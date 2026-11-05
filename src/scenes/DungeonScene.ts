@@ -7,6 +7,8 @@ type Enemy = {
   x: number;
   y: number;
   hp: number;
+  maxHp: number;
+  hpFill: Phaser.GameObjects.Rectangle;
   alive: boolean;
   flash: number;
 };
@@ -27,6 +29,8 @@ export class DungeonScene extends Phaser.Scene {
   private attackCooldown = 0;
   private damageCooldown = 0;
   private exitPrompt!: Phaser.GameObjects.Text;
+  private exitLight!: Phaser.GameObjects.Arc;
+  private objectiveText!: Phaser.GameObjects.Text;
   private done = false;
 
   constructor() {
@@ -46,8 +50,8 @@ export class DungeonScene extends Phaser.Scene {
     this.spawnEnemy(260, 250);
     this.spawnEnemy(690, 250);
     this.spawnEnemy(480, 350);
-    this.spawnEnemy(760, 440);
-    this.exitPrompt = this.add.text(480, 155, "THE EXIT IS OPEN · PRESS E TO EXTRACT", {
+    this.spawnEnemy(760, 440, 72, 0x9a6c79);
+    this.exitPrompt = this.add.text(480, 155, "GATE SEALED · DEFEAT EVERY CREATURE", {
       fontFamily: "Arial",
       fontSize: "11px",
       color: "#e9d7af",
@@ -62,11 +66,12 @@ export class DungeonScene extends Phaser.Scene {
       fontStyle: "bold",
       letterSpacing: 3,
     }).setDepth(1000);
-    this.add.text(34, 51, "The deeper you go, the more the bazaar will pay.", {
+    this.add.text(34, 51, "Clear the rift. Collect what the creatures leave behind.", {
       fontFamily: "Georgia",
       fontSize: "19px",
       color: "#eee0c5",
     }).setDepth(1000);
+    this.objectiveText = this.add.text(34, 82, "RIFT CREATURES  0 / 4", { fontFamily: "Arial", fontSize: "10px", color: "#c6b58e", fontStyle: "bold", letterSpacing: 1 }).setDepth(1000);
     if (this.input.keyboard) {
       this.keys = this.input.keyboard.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,E,SPACE") as MoveKeys;
     }
@@ -76,8 +81,8 @@ export class DungeonScene extends Phaser.Scene {
     const touchAttack = () => this.attack();
     const touchInteract = () => {
       const nearExit = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.exit.x, this.exit.y + 34) < 78;
-      if (nearExit) this.game.events.emit("extract-now", false);
-      else this.game.events.emit("toast", "Move close to the glowing gate to extract.");
+      if (nearExit && this.remainingEnemies() === 0) this.game.events.emit("extract-now", false);
+      else this.game.events.emit("toast", this.remainingEnemies() > 0 ? "The gate is sealed. Defeat every creature first." : "Move close to the glowing gate to extract.");
     };
     this.game.events.on("touch-attack", touchAttack);
     this.game.events.on("touch-interact", touchInteract);
@@ -99,11 +104,17 @@ export class DungeonScene extends Phaser.Scene {
     this.collectDrops();
 
     const nearExit = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.exit.x, this.exit.y + 34) < 78;
-    this.exitPrompt.setText(nearExit ? "PRESS E TO EXTRACT WITH YOUR LOOT" : "FIND LOOT · SURVIVE · RETURN TO THE GATE");
-    if (nearExit && Phaser.Input.Keyboard.JustDown(this.keys["E"])) {
+    const remaining = this.remainingEnemies();
+    this.objectiveText.setText("RIFT CREATURES  " + (this.enemies.length - remaining) + " / " + this.enemies.length + " DEFEATED");
+    this.exitPrompt.setText(remaining > 0 ? "GATE SEALED · " + remaining + " CREATURE" + (remaining === 1 ? "" : "S") + " REMAIN" : nearExit ? "PRESS E TO EXTRACT WITH YOUR LOOT" : "GATE OPEN · RETURN HERE TO EXTRACT");
+    if (nearExit && remaining === 0 && Phaser.Input.Keyboard.JustDown(this.keys["E"])) {
       this.game.events.emit("extract-now", false);
     }
     if (Phaser.Input.Keyboard.JustDown(this.keys["SPACE"])) this.attack();
+  }
+
+  private remainingEnemies(): number {
+    return this.enemies.filter((enemy) => enemy.alive).length;
   }
 
   private movePlayer(delta: number): void {
@@ -174,7 +185,8 @@ export class DungeonScene extends Phaser.Scene {
       this.game.events.emit("toast", "Move closer to a creature before striking.");
       return;
     }
-    target.enemy.hp -= playerDamage();
+    target.enemy.hp = Math.max(0, target.enemy.hp - playerDamage());
+    target.enemy.hpFill.setSize(34 * (target.enemy.hp / target.enemy.maxHp), 3);
     target.enemy.root.setAlpha(0.55);
     this.time.delayedCall(90, () => {
       if (target.enemy.root.active) target.enemy.root.setAlpha(1);
@@ -196,7 +208,11 @@ export class DungeonScene extends Phaser.Scene {
       duration: 230,
       onComplete: () => enemy.root.destroy(),
     });
-    this.game.events.emit("toast", "Creature defeated. It dropped a resource. Walk over it to collect.");
+    this.game.events.emit("toast", this.remainingEnemies() === 0 ? "The last creature fell. The extraction gate is now open." : "Creature defeated. It dropped a resource. Walk over it to collect.");
+    if (this.remainingEnemies() === 0) {
+      this.exitLight.setFillStyle(0xc4d6a0, 0.42);
+      this.tweens.add({ targets: this.exitLight, alpha: 0.9, duration: 450, yoyo: true, repeat: 2 });
+    }
     this.game.events.emit("state-change");
   }
 
@@ -227,11 +243,11 @@ export class DungeonScene extends Phaser.Scene {
     }
   }
 
-  private spawnEnemy(x: number, y: number): void {
+  private spawnEnemy(x: number, y: number, health = 30, color = 0x648477): void {
     const root = this.add.container(x, y);
     const shadow = this.add.ellipse(0, 14, 34, 12, 0x080b09, 0.5);
     const body = this.add.graphics();
-    body.fillStyle(0x648477);
+    body.fillStyle(color);
     body.fillEllipse(0, -1, 31, 30);
     body.fillStyle(0x89a58b);
     body.fillEllipse(-3, -9, 18, 12);
@@ -242,9 +258,11 @@ export class DungeonScene extends Phaser.Scene {
     body.fillCircle(-6, -2, 1.4);
     body.fillCircle(6, -2, 1.4);
     const marker = this.add.ellipse(0, -23, 22, 5, 0x141a16, 0.55);
-    root.add([shadow, body, marker]);
+    const hpBack = this.add.rectangle(0, -34, 38, 5, 0x151b17).setOrigin(0.5);
+    const hpFill = this.add.rectangle(-17, -34, 34, 3, 0xb3bd91).setOrigin(0, 0.5);
+    root.add([shadow, body, marker, hpBack, hpFill]);
     root.setDepth(y);
-    this.enemies.push({ root, x, y, hp: 30, alive: true, flash: 0 });
+    this.enemies.push({ root, x, y, hp: health, maxHp: health, hpFill, alive: true, flash: 0 });
   }
 
   private drawDungeon(): void {
@@ -300,6 +318,7 @@ export class DungeonScene extends Phaser.Scene {
     g.strokeCircle(480, 102, 31);
     g.fillStyle(0x91a68a, 0.2);
     g.fillCircle(480, 102, 23);
+    this.exitLight = this.add.circle(480, 102, 18, 0x87917d, 0.16).setDepth(3);
     this.add.text(480, 167, "BAZAAR GATE", {
       fontFamily: "Arial",
       fontSize: "9px",
