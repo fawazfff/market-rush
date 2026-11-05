@@ -9,6 +9,8 @@ import {
   sellResource,
   beginExpedition,
   buyPotion,
+  craftBlade,
+  craftTonic,
   finishExpedition,
   marketPrice,
   marketReason,
@@ -187,6 +189,14 @@ byId("sell-loot")?.addEventListener("click", () => {
   const result = sellAllLoot();
   render();
   notify(result.message);
+});
+byId("craft-tonic")?.addEventListener("click", () => {
+  notify(craftTonic());
+  render();
+});
+byId("craft-blade")?.addEventListener("click", () => {
+  notify(craftBlade());
+  render();
 });
 byId("buy-tonic")?.addEventListener("click", () => {
   notify(buyPotion());
