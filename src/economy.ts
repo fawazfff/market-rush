@@ -171,6 +171,29 @@ export function sellAllLoot(): { message: string; earned: number } {
   return { message: "Sold " + sold + " items for " + earned + " coins at the board price.", earned };
 }
 
+export function craftTonic(): string {
+  if (state.bag.moonleaf < 1 || state.bag.slimeCore < 1) return "Crafting a tonic needs 1 moonleaf and 1 slime core.";
+  if (state.potions >= 4) return "Your pack is already full. You can carry up to four tonics.";
+  state.bag.moonleaf -= 1;
+  state.bag.slimeCore -= 1;
+  state.potions += 1;
+  state.market.message = "The apothecary turned your gathered herbs and slime core into a healing tonic.";
+  return "Crafted a healing tonic from 1 moonleaf and 1 slime core.";
+}
+
+export function craftBlade(): string {
+  const coinCost = 35 + state.weaponTier * 25;
+  if (state.weaponTier >= 2) return "Your blade is already fully reinforced.";
+  if (state.bag.emberOre < 2 || state.bag.firewood < 1) return "Reinforcing the blade needs 2 ember ore and 1 ironwood.";
+  if (state.coins < coinCost) return "The armourer needs " + coinCost + " coins for the forge work.";
+  state.bag.emberOre -= 2;
+  state.bag.firewood -= 1;
+  state.coins -= coinCost;
+  state.weaponTier += 1;
+  state.market.message = "The armourer used your materials to reinforce the blade. Your next expedition will hit harder.";
+  return "Blade reinforced using 2 ember ore, 1 ironwood and " + coinCost + " coins. Damage is now " + playerDamage() + ".";
+}
+
 export function buyPotion(): string {
   const price = 20;
   if (state.coins < price) return "You need " + price + " coins for a healing tonic.";
