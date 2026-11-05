@@ -136,7 +136,9 @@ function createGame(): void {
     width: 960,
     height: 600,
     backgroundColor: "#252b26",
-    antialias: true,
+    antialias: false,
+    pixelArt: true,
+    roundPixels: true,
     render: { roundPixels: true },
     scale: {
       mode: Phaser.Scale.FIT,
