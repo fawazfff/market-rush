@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { MarketScene } from "./scenes/MarketScene";
-import { INGREDIENTS, RECIPES, buyIngredient, changePrice, closeShift, completeOrder, disappointCustomer, marketPulse, recipeById, startNextDay, state, type IngredientId, type RecipeId } from "./economy";
+import { INGREDIENTS, RECIPES, buyIngredient, closeShift, completeOrder, disappointCustomer, marketPulse, recipeById, startNextDay, state, type IngredientId, type RecipeId } from "./economy";
 import "./style.css";
 
 const game = new Phaser.Game({
@@ -11,6 +11,7 @@ const game = new Phaser.Game({
 });
 const $ = (id: string) => document.getElementById(id);
 const set = (id: string, value: string | number) => { const node = $(id); if (node) node.textContent = String(value); };
+const setButton = (id: string, value: string) => { const node = $(id)?.querySelector("b"); if (node) node.textContent = value; };
 let selectedOrder: RecipeId = "jollof";
 let selectedRecipe: RecipeId = "jollof";
 let cooking = false;
@@ -42,9 +43,7 @@ function render() {
   set("sold", state.sold); set("revenue", state.revenue);
   set("market-story", state.marketMessage);
   renderPantry(); renderMarket();
-  document.querySelectorAll<HTMLButtonElement>(".recipe").forEach((button) => {
-    button.classList.toggle("active", button.dataset.recipe === selectedRecipe);
-  });
+  document.querySelectorAll<HTMLButtonElement>(".recipe").forEach((button) => button.classList.toggle("active", button.dataset.recipe === selectedRecipe));
 }
 function notify(message: string) { set("feedback", message); }
 function showOrder(id: RecipeId) {
@@ -53,7 +52,7 @@ function showOrder(id: RecipeId) {
   set("order-name", recipe.name); set("order-icon", recipe.icon);
   set("order-detail", Object.entries(recipe.ingredients).map(([key, amount]) => `${amount} ${key}`).join(" · "));
   set("order-status", "CUSTOMER ORDER");
-  set("feedback", `A customer wants ${recipe.name}. Choose your recipe and cook!`);
+  notify(`A customer wants ${recipe.name}. Choose the matching dish and cook!`);
   render();
 }
 function setCookingProgress(value: number) {
@@ -64,15 +63,15 @@ function setCookingProgress(value: number) {
 }
 function startCooking() {
   if (!state.shiftOpen || cooking) return;
-  if (selectedRecipe !== selectedOrder) {
-    notify(`This customer ordered ${recipeById(selectedOrder).shortName}. Select that dish first.`); return;
-  }
+  if (selectedRecipe !== selectedOrder) { notify(`This customer ordered ${recipeById(selectedOrder).shortName}. Select that dish first.`); return; }
   const recipe = recipeById(selectedRecipe);
   const missing = Object.entries(recipe.ingredients).find(([id, amount]) => state.stock[id as IngredientId] < (amount ?? 0));
   if (missing) { notify(`You're out of ${missing[0]}. Buy more from the pantry.`); return; }
-  cooking = true; cookStart = performance.now(); cookDuration = recipe.cookTime; cookTimer = window.setInterval(tickCooking, 30);
-  $("cook-button")!.classList.add("cooking"); set("cook-hint", "Watch the marker. Green is the sweet spot.");
-  set("cook-button", "Cooking…"); set("serve-button", "Serve plate");
+  cooking = true; cookStart = performance.now(); cookDuration = recipe.cookTime;
+  cookTimer = window.setInterval(tickCooking, 30);
+  $("cook-button")!.classList.add("cooking");
+  set("cook-hint", "Watch the marker. Green is the sweet spot.");
+  setButton("cook-button", "Cooking…");
   ($("serve-button") as HTMLButtonElement).disabled = false;
 }
 function tickCooking() {
@@ -81,19 +80,19 @@ function tickCooking() {
   if (progress >= 100) {
     window.clearInterval(cookTimer); cooking = false;
     set("cook-hint", "It's ready! Serve now for a good result.");
-    set("cook-button", "Cook again");
+    setButton("cook-button", "Ready to serve");
   }
 }
 function servePlate() {
-  if (!cooking && Number.parseFloat(($("heat-marker") as HTMLElement).style.left || "0") < 1) { notify("Start cooking before serving."); return; }
   const progress = Math.min(100, (performance.now() - cookStart) / cookDuration * 100);
+  if (!cooking && progress < 1) { notify("Start cooking before serving."); return; }
   if (progress < 62) { notify("Still cooking! Wait for the marker to reach the green zone."); return; }
   window.clearInterval(cookTimer); cooking = false;
   const quality = progress >= 74 && progress <= 92 ? 1.2 : progress <= 98 ? 1 : 0.7;
   const result = completeOrder(selectedRecipe, quality);
   if (!result.ok) { notify(result.message); return; }
-  notify(result.message);
-  setCookingProgress(0); set("cook-button", "Start cooking"); set("cook-hint", "Hit SERVE when the marker enters the green zone.");
+  notify(result.message); setCookingProgress(0);
+  setButton("cook-button", "Start cooking"); set("cook-hint", "Hit SERVE when the marker enters the green zone.");
   $("cook-button")!.classList.remove("cooking");
   ($("serve-button") as HTMLButtonElement).disabled = true;
   orderCount += 1;
@@ -117,7 +116,8 @@ function finishDay() {
   state.shiftSeconds = shiftTimer;
   const summary = closeShift();
   set("sum-sold", summary.sold); set("sum-revenue", summary.revenue); set("sum-expenses", summary.expenses);
-  set("sum-profit", summary.profit); set("day-summary", `Day ${summary.day} is over. ${summary.profit >= 0 ? "You made a profit. Nice work." : "It was a tough day. Adjust your menu and prices tomorrow."}`);
+  set("sum-profit", summary.profit);
+  set("day-summary", `Day ${summary.day} is over. ${summary.profit >= 0 ? "You made a profit. Nice work." : "It was a tough day. Adjust your menu and prices tomorrow."}`);
   $("day-modal")!.classList.remove("hidden");
   window.clearInterval(shiftInterval); render();
 }
@@ -137,9 +137,8 @@ $("serve-button")?.addEventListener("click", servePlate);
 $("skip-order")?.addEventListener("click", skipOrder);
 $("close-day")?.addEventListener("click", finishDay);
 $("next-day")?.addEventListener("click", openNextDay);
-game.scene.start("MarketScene");
-game.events.on("ready", () => {});
-game.scene.getScene("MarketScene").events.on("customer-selected", (data: { order: RecipeId }) => showOrder(data.order));
+const scene = game.scene.getScene("MarketScene");
+scene.events.on("customer-selected", (data: { order: RecipeId }) => showOrder(data.order));
 render();
 shiftInterval = window.setInterval(updateClock, 1000);
 window.setInterval(() => { if (state.shiftOpen) { marketPulse(); renderMarket(); set("market-story", state.marketMessage); } }, 10000);
