@@ -50,7 +50,6 @@ function save() { localStorage.setItem("street-food-rivals-save", JSON.stringify
 function el<T extends HTMLElement>(id: string) { return document.getElementById(id) as T; }
 function money(n: number) { return "₵" + Math.round(n); }
 function price(id: IngredientId) { return Math.max(2, Math.round(state.market[id].price)); }
-function cost(recipe: Recipe) { return Object.entries(recipe.ingredients).reduce((sum, [id, qty]) => sum + price(id as IngredientId) * (qty || 0), 0); }
 function canCook(recipe: Recipe) { return Object.entries(recipe.ingredients).every(([id, qty]) => state.stock[id as IngredientId] >= (qty || 0)); }
 function getQueue() {
   const count = state.event === "Payday crowd" ? 6 : state.event === "Rainy afternoon" ? 3 : 5;
@@ -60,6 +59,7 @@ function getQueue() {
   });
 }
 function pickEvent() {
+  for (const item of ingredients) state.market[item.id].price = item.base;
   const event = events[(state.day - 1) % events.length];
   state.event = event.name; state.eventText = event.text;
   for (const [id, factor] of Object.entries(event.changes)) state.market[id as IngredientId].price = Math.round(ingredients.find(i => i.id === id)!.base * (factor || 1));
@@ -137,6 +137,8 @@ function toast(message: string) {
 }
 function render() {
   el("day").textContent = String(state.day).padStart(2, "0");
+  el("day-ledger").textContent = String(state.day).padStart(2, "0");
+  const repFill = document.querySelector<HTMLElement>(".rep-track i"); if (repFill) repFill.style.width = (state.reputation * 10) + "%";
   el("coins").textContent = money(state.coins);
   el("rep").textContent = state.reputation.toFixed(1) + "/10";
   el("event-name").textContent = state.event || "Opening day";
