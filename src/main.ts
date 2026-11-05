@@ -101,10 +101,10 @@ function serve() {
   if (won) {
     state.coins += state.askingPrice; state.revenue += state.askingPrice; state.sales += 1;
     state.reputation = Math.min(10, state.reputation + 0.35);
-    state.rivals[Math.floor(Math.random() * state.rivals.length)].today += 1;
     state.lastSummary = customer.name + " bought " + recipe.name + " for " + money(state.askingPrice) + ".";
     toast(customer.name + " chose your stall!");
   } else {
+    state.rivals[Math.floor(Math.random() * state.rivals.length)].today += 1;
     state.reputation = Math.max(0, state.reputation - 0.12);
     state.lastSummary = customer.name + " went elsewhere. " + (!liked ? "They wanted something else." : !affordable ? "Your price was over their budget." : "A rival made a better offer.");
     toast(customer.name + " walked to another stall.");
@@ -144,6 +144,7 @@ function render() {
   el("event-name").textContent = state.event || "Opening day";
   el("event-copy").textContent = state.eventText || "Your first customers are on their way.";
   el("customer-count").textContent = state.queue.length + " waiting";
+  el("queue-count").textContent = state.queue.length + " waiting";
   el("daily-sales").textContent = String(state.sales);
   el("daily-revenue").textContent = money(state.revenue);
   el("daily-spent").textContent = money(state.spent);
