@@ -1,59 +1,33 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f5f1e8" />
-    <title>Market Rush</title>
-    <meta name="description" content="Run a street-food stall in a living economy." />
-  </head>
-  <body>
-    <div id="app">
-      <header class="topbar">
-        <a class="brand" href="/" aria-label="Market Rush home"><span class="brand-mark">MR</span><span>Market Rush</span></a>
-        <div class="day-label">DAY <strong id="day">01</strong></div>
-        <div class="wallet"><span class="coin">●</span><strong id="money">100</strong><span>coins</span></div>
-      </header>
-      <main class="game-shell">
-        <section class="game-heading">
-          <div><p class="eyebrow">MARKET STREET</p><h1>Lunch rush is coming.</h1><p class="subheading">Buy smart. Price fairly. Keep your neighbours in business.</p></div>
-          <div class="open-status"><span></span> STALL OPEN</div>
-        </section>
-        <div id="game" class="game-frame" aria-label="Market Rush game"></div>
-        <section class="dashboard">
-          <div class="panel player-panel">
-            <div class="panel-heading"><div><p class="panel-kicker">YOUR BUSINESS</p><h2>Food stall</h2></div><span class="rep" id="reputation">50 reputation</span></div>
-            <div class="stock-grid">
-              <div><span>Rice</span><strong id="rice-stock">5</strong></div>
-              <div><span>Tomatoes</span><strong id="tomato-stock">5</strong></div>
-              <div><span>Chicken</span><strong id="chicken-stock">2</strong></div>
-              <div><span>Bowls sold</span><strong id="served">0</strong></div>
-            </div>
-            <div class="price-row"><div><span class="muted-label">RICE BOWL PRICE</span><strong><span id="meal-price">18</span> <small>coins</small></strong></div><div class="price-controls"><button id="price-down" aria-label="Lower price">−</button><button id="price-up" aria-label="Raise price">+</button></div></div>
-            <div class="actions"><button id="buy-button" class="secondary-button">Buy ingredients <span id="buy-cost">14 coins</span></button><button id="serve-button" class="primary-button">Prepare rice bowl <span>Sell to a customer</span></button></div>
-          </div>
-          <div class="panel market-panel">
-            <div class="panel-heading"><div><p class="panel-kicker">SHARED SUPPLIER</p><h2>Market prices</h2></div><span class="live-dot">● LIVE</span></div>
-            <div class="market-table">
-              <div class="table-head"><span>Ingredient</span><span>Price</span><span>Supplier stock</span></div>
-              <div><span>Rice</span><strong id="rice-price">4</strong><span id="supplier-rice">28</span></div>
-              <div><span>Tomatoes</span><strong id="tomato-price">3</strong><span id="supplier-tomatoes">24</span></div>
-              <div><span>Chicken</span><strong id="chicken-price">6</strong><span id="supplier-chicken">16</span></div>
-            </div>
-            <p class="market-note" id="market-note">Wholesale prices change when the street buys up stock.</p>
-            <div class="rivals">
-              <div><span>Grill House</span><strong id="rival-one-price">20 coins</strong><small id="rival-one-stock">5 meals in stock</small></div>
-              <div><span>Noodle Spot</span><strong id="rival-two-price">17 coins</strong><small id="rival-two-stock">4 meals in stock</small></div>
-            </div>
-          </div>
-        </section>
-        <section class="bottom-row">
-          <p id="message" class="message" aria-live="polite">Your stall is ready. Buy ingredients, set a price and serve the lunch crowd.</p>
-          <button id="next-day" class="secondary-button">Close day <span>Pay 5 coins rent</span></button>
-        </section>
-      </main>
-      <footer>MARKET RUSH <span>·</span> A SMALL STREET WITH A BIG ECONOMY</footer>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#f3ead9"/>
+<title>Market Rush | Run the lunch street</title><meta name="description" content="Cook fast, serve hungry customers and outsmart the street market."/>
+</head>
+<body>
+<div id="app">
+<header class="topbar"><a class="brand" href="/"><span class="brand-mark">MR</span><span>Market Rush</span></a><div class="shift"><span>DAY <b id="day">01</b></span><span class="shift-dot"></span><span id="shift-label">LUNCH SHIFT</span></div><div class="wallet"><span>◉</span><strong id="coins">100</strong><small>coins</small></div></header>
+<main class="layout">
+<section class="intro"><div><p class="eyebrow">YOUR LITTLE FOOD BUSINESS</p><h1>Make the lunch rush count.</h1><p>Cook what people want. Watch what your neighbours are doing.</p></div><div class="rep-chip"><span>★</span><b id="rep">50</b><small>reputation</small></div></section>
+<section class="world-wrap"><div id="game" class="world" aria-label="Interactive 2D food market street"></div><div class="world-caption"><span><i></i> STREET IS OPEN</span><span>CLICK A CUSTOMER TO SEE THEIR ORDER</span></div></section>
+<section class="play-area">
+<div class="kitchen panel">
+<div class="section-head"><div><span class="eyebrow">BEHIND THE COUNTER</span><h2>Your kitchen</h2></div><div class="timer"><span>SHIFT</span><b id="shift-time">02:00</b></div></div>
+<div class="order-ticket"><div class="ticket-icon" id="order-icon">🍚</div><div class="ticket-copy"><small id="order-status">NEXT CUSTOMER</small><strong id="order-name">Jollof Rice Bowl</strong><span id="order-detail">1 rice · 1 tomato</span></div><button class="change-order" id="skip-order" title="Let this customer go">Skip</button></div>
+<div class="recipe-row" id="recipe-row"><button class="recipe active" data-recipe="jollof"><span>🍚</span><b>Jollof</b><small>18 coins</small></button><button class="recipe" data-recipe="suya"><span>🥙</span><b>Suya wrap</b><small>22 coins</small></button><button class="recipe" data-recipe="akara"><span>🫘</span><b>Akara bites</b><small>14 coins</small></button></div>
+<div class="cook-line"><div><span class="eyebrow">COOKING HEAT</span><span class="heat-hint" id="cook-hint">Hit SERVE when the marker enters the green zone.</span></div><div class="heat-track"><div class="heat-safe"></div><div class="heat-progress" id="heat-progress"></div><div class="heat-marker" id="heat-marker"></div></div></div>
+<div class="kitchen-actions"><button class="cook-button" id="cook-button"><span>🔥</span><b>Start cooking</b><small>Prepare this order</small></button><button class="serve-button" id="serve-button" disabled><b>Serve plate</b><small>Perfect timing earns tips</small></button></div>
+<p class="feedback" id="feedback" aria-live="polite">A customer is waiting. Let's get cooking.</p>
+</div>
+<aside class="side-column">
+<div class="panel pantry"><div class="section-head"><div><span class="eyebrow">YOUR INGREDIENTS</span><h2>Pantry</h2></div><span class="tiny-label">BUY FROM THE STREET</span></div><div class="pantry-list" id="pantry-list"></div></div>
+<div class="panel street-market"><div class="section-head"><div><span class="eyebrow">EVERYONE SHOPS HERE</span><h2>Street market</h2></div><span class="market-live"><i></i> LIVE</span></div><div class="market-list" id="market-list"></div><p class="market-story" id="market-story">Rivals shop from the same supplier. Their purchases affect your prices.</p></div>
+<div class="panel rivals"><div class="section-head"><div><span class="eyebrow">YOUR NEIGHBOURS</span><h2>Other stalls</h2></div></div><div id="rival-list"></div></div>
+</aside>
+</section>
+<section class="day-footer"><div><span class="eyebrow">TODAY'S BUSINESS</span><strong><b id="sold">0</b> plates served <i>·</i> <b id="revenue">0</b> coins earned</strong></div><button id="close-day">Close the day <span>→</span></button></section>
+</main>
+<div class="modal hidden" id="day-modal"><div class="modal-card"><span class="eyebrow">THE STREET IS QUIET</span><h2>That's a wrap.</h2><p id="day-summary">Your shift is over.</p><div class="summary-grid"><div><small>PLATES SERVED</small><b id="sum-sold">0</b></div><div><small>REVENUE</small><b id="sum-revenue">0</b></div><div><small>EXPENSES</small><b id="sum-expenses">0</b></div><div><small>NET PROFIT</small><b id="sum-profit">0</b></div></div><button id="next-day">Open tomorrow's stall</button></div></div>
+<footer>MARKET RUSH <span>·</span> A LIVING STREET FOOD ECONOMY</footer>
+</div><script type="module" src="/src/main.ts"></script>
+</body></html>
