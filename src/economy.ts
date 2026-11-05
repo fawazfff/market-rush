@@ -1,4 +1,4 @@
-export type ResourceId = "emberOre" | "moonleaf" | "slimeCore";
+export type ResourceId = "emberOre" | "riftCrystal" | "firewood" | "moonleaf" | "slimeCore";
 
 export type Resource = {
   id: ResourceId;
@@ -9,12 +9,15 @@ export type Resource = {
 };
 
 export const RESOURCES: Resource[] = [
+  { id: "riftCrystal", name: "Rift crystal", icon: "✧", description: "A charged crystal pulled from the heart of the rift.", basePrice: 24 },
   { id: "emberOre", name: "Ember ore", icon: "◆", description: "Warm metal mined near the rift.", basePrice: 16 },
   { id: "moonleaf", name: "Moonleaf", icon: "✦", description: "A rare herb used by travelling healers.", basePrice: 11 },
   { id: "slimeCore", name: "Slime core", icon: "●", description: "A useful alchemy ingredient.", basePrice: 13 },
+  { id: "firewood", name: "Ironwood", icon: "▥", description: "Dense timber used to make handles and camp gear.", basePrice: 8 },
 ];
 
 export type ResourceCounts = Record<ResourceId, number>;
+const emptyCounts = (): ResourceCounts => ({ emberOre: 0, riftCrystal: 0, firewood: 0, moonleaf: 0, slimeCore: 0 });
 
 export const state = {
   coins: 100,
@@ -22,12 +25,14 @@ export const state = {
   maxHealth: 100,
   potions: 1,
   weaponTier: 0,
-  bag: { emberOre: 0, moonleaf: 0, slimeCore: 0 } as ResourceCounts,
+  bag: emptyCounts(),
   market: {
     day: 1,
-    supply: { emberOre: 5, moonleaf: 9, slimeCore: 4 } as ResourceCounts,
-    demand: { emberOre: 9, moonleaf: 4, slimeCore: 7 } as ResourceCounts,
-    message: "The first caravan is late. Ember ore is already drawing attention.",
+    supply: { emberOre: 5, riftCrystal: 3, firewood: 12, moonleaf: 9, slimeCore: 4 } as ResourceCounts,
+    demand: { emberOre: 9, riftCrystal: 11, firewood: 4, moonleaf: 4, slimeCore: 7 } as ResourceCounts,
+    negotiatedDay: emptyCounts(),
+    negotiatedOffer: emptyCounts(),
+    message: "The first caravan is late. Rift crystals are already drawing attention.",
   },
   run: {
     kills: 0,
@@ -62,6 +67,45 @@ export function marketReason(id: ResourceId): string {
   if (demand - supply >= 4) return "Buyers outnumber stock";
   if (supply - demand >= 4) return "Plenty on the shelves";
   return "Trading at a steady pace";
+}
+
+export function brokerOffer(id: ResourceId): number {
+  if (state.market.negotiatedDay[id] === state.market.day) return state.market.negotiatedOffer[id];
+  return Math.max(1, Math.round(marketPrice(id) * 0.9));
+}
+
+export function negotiateOffer(id: ResourceId): string {
+  if (state.bag[id] <= 0) return "You need at least one " + resourceById(id).name.toLowerCase() + " to negotiate a sale.";
+  if (state.market.negotiatedDay[id] === state.market.day) return "Mara has already negotiated for this resource today. Try again after the market turns.";
+  const price = marketPrice(id);
+  const demand = state.market.demand[id];
+  const supply = state.market.supply[id];
+  state.market.negotiatedDay[id] = state.market.day;
+  if (demand > supply) {
+    const improved = Math.round(price * 1.18);
+    state.market.negotiatedOffer[id] = improved;
+    state.market.message = "Mara raised her offer for " + resourceById(id).name + ". Buyers are competing for limited stock.";
+    return "Mara considers the shortage and raises her offer to " + improved + " coins each.";
+  }
+  const reduced = Math.max(1, Math.round(price * 0.82));
+  state.market.negotiatedOffer[id] = reduced;
+  state.market.message = "Mara refuses a higher price. " + resourceById(id).name + " is already easy to find.";
+  return "Mara shakes her head. Supply is high, so her offer falls to " + reduced + " coins each.";
+}
+
+export function sellResource(id: ResourceId, quantity = 1): { message: string; earned: number } {
+  const amount = Math.min(state.bag[id], Math.max(1, quantity));
+  if (amount <= 0) return { message: "You do not have that item in your pack.", earned: 0 };
+  const price = brokerOffer(id);
+  const earned = amount * price;
+  state.bag[id] -= amount;
+  state.coins += earned;
+  state.totals.coinsEarned += earned;
+  state.totals.itemsSold += amount;
+  state.market.supply[id] = clamp(state.market.supply[id] + amount, 0, 20);
+  state.market.demand[id] = clamp(state.market.demand[id] - Math.ceil(amount / 2), 1, 16);
+  state.market.message = "Mara bought " + amount + " " + resourceById(id).name.toLowerCase() + (amount > 1 ? "s" : "") + ". Her shelves are fuller now.";
+  return { message: "Sold " + amount + " " + resourceById(id).name.toLowerCase() + " for " + earned + " coins.", earned };
 }
 
 export function beginExpedition(): void {
@@ -116,7 +160,7 @@ export function sellAllLoot(): { message: string; earned: number } {
     earned += quantity * marketPrice(item.id);
     sold += quantity;
     state.market.supply[item.id] = clamp(state.market.supply[item.id] + quantity, 0, 20);
-    state.market.demand[item.id] = clamp(state.market.demand[item.id] - Math.ceil(quantity / 2), 1, 14);
+    state.market.demand[item.id] = clamp(state.market.demand[item.id] - Math.ceil(quantity / 2), 1, 16);
     state.bag[item.id] = 0;
   }
   if (sold === 0) return { message: "Your bag is empty. Take a trip through the rift first.", earned: 0 };
@@ -124,7 +168,7 @@ export function sellAllLoot(): { message: string; earned: number } {
   state.totals.coinsEarned += earned;
   state.totals.itemsSold += sold;
   state.market.message = "You brought " + sold + " items to the bazaar. More stock means buyers can negotiate harder.";
-  return { message: "Sold " + sold + " items for " + earned + " coins.", earned };
+  return { message: "Sold " + sold + " items for " + earned + " coins at the board price.", earned };
 }
 
 export function buyPotion(): string {
@@ -161,7 +205,7 @@ export function advanceMarketDay(): void {
     const supplyChange = cycle === 0 ? -2 : cycle === 1 ? 0 : 1;
     const demandChange = cycle === 2 ? 2 : cycle === 0 ? 1 : -1;
     state.market.supply[id] = clamp(state.market.supply[id] + supplyChange, 1, 18);
-    state.market.demand[id] = clamp(state.market.demand[id] + demandChange, 1, 14);
+    state.market.demand[id] = clamp(state.market.demand[id] + demandChange, 1, 16);
   });
   const pressure = RESOURCES
     .map((item) => ({ item, score: state.market.demand[item.id] - state.market.supply[item.id] }))
