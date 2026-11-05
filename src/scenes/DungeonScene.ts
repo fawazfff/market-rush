@@ -210,7 +210,7 @@ export class DungeonScene extends Phaser.Scene {
       addLoot(drop.id);
       this.drops = this.drops.filter((item) => item !== drop);
       drop.root.destroy();
-      this.game.events.emit("toast", "Collected " + (drop.id === "emberOre" ? "ember ore." : drop.id === "moonleaf" ? "moonleaf." : "a slime core."));
+      this.game.events.emit("toast", "Collected " + resourceById(drop.id).name.toLowerCase() + ".");
       this.game.events.emit("state-change");
     }
   }
